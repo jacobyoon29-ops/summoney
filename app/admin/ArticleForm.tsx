@@ -2,8 +2,11 @@
 
 import { useState, type CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { CATEGORIES, type Article, type Category } from '@/lib/supabase';
 import { createArticle, updateArticle, deleteArticle } from './actions';
+
+const ContentEditor = dynamic(() => import('./ContentEditor'), { ssr: false });
 
 export default function ArticleForm({ initial }: { initial?: Article }) {
   const router = useRouter();
@@ -196,13 +199,9 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
                   : <>✦ AI 자동완성</>}
               </button>
             </div>
-            <textarea
-              id="content"
+            <ContentEditor
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="본문을 붙여넣으세요. 그 다음 'AI 자동완성' 버튼을 누르면 제목·설명·슬러그·해시태그가 자동으로 채워집니다."
-              rows={12}
-              style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.7 }}
+              onChange={setContent}
               disabled={busy}
             />
           </div>

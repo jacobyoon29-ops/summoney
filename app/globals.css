@@ -24,3 +24,19 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* TipTap HTML 렌더링 — 상세 페이지 본문 */
+.article-body { color: #222; font-size: 17px; line-height: 1.8; word-break: keep-all; }
+.article-body p  { margin: 0 0 1.1em; }
+.article-body h2 { font-size: 22px; font-weight: 800; margin: 1.6em 0 0.5em; color: #111; letter-spacing: -0.02em; }
+.article-body h3 { font-size: 18px; font-weight: 700; margin: 1.4em 0 0.4em; color: #111; }
+.article-body strong { font-weight: 700; }
+.article-body em  { font-style: italic; }
+.article-body s   { text-decoration: line-through; color: #888; }
+.article-body ul, .article-body ol { padding-left: 1.5em; margin: 0 0 1.1em; }
+.article-body li  { margin-bottom: 0.35em; }
+.article-body blockquote { border-left: 3px solid #FF6B6B; margin: 0 0 1.1em; padding: 8px 18px; color: #555; background: #fff5f5; border-radius: 0 8px 8px 0; }
+.article-body img { max-width: 100%; height: auto; border-radius: 12px; margin: 1.2em 0; display: block; }
+.article-body iframe { max-width: 100%; border-radius: 12px; margin: 1.2em 0; }
+.article-body div[data-youtube-video] { margin: 1.2em 0; }
+.article-body div[data-youtube-video] iframe { border-radius: 12px; width: 100%; aspect-ratio: 16/9; height: auto; }

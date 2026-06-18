@@ -22,6 +22,10 @@ const CATEGORY_TEXT: Record<string, string> = {
   브랜드: '#7d6608',
 };
 
+function isHtml(content: string): boolean {
+  return /<[a-z][\s\S]*>/i.test(content);
+}
+
 function decodeSlug(slug: string): string {
   try {
     return decodeURIComponent(slug);
@@ -180,19 +184,23 @@ export default async function ArticlePage({
           />
         )}
 
-        {/* 본문 */}
-        <div
-          style={{
-            color: '#222',
-            fontSize: '17px',
-            lineHeight: 1.8,
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'keep-all',
-            paddingBottom: '64px',
-          }}
-        >
-          {article.content}
-        </div>
+        {/* 본문 — TipTap HTML 또는 레거시 plain text 모두 지원 */}
+        {isHtml(article.content) ? (
+          <div
+            className="article-body"
+            dangerouslySetInnerHTML={{ __html: article.content }}
+            style={{ paddingBottom: '64px' }}
+          />
+        ) : (
+          <div
+            style={{
+              color: '#222', fontSize: '17px', lineHeight: 1.8,
+              whiteSpace: 'pre-wrap', wordBreak: 'keep-all', paddingBottom: '64px',
+            }}
+          >
+            {article.content}
+          </div>
+        )}
       </article>
 
       {/* 관련 글 섹션 */}
