@@ -94,6 +94,7 @@ function ProgressBarNodeView({
               type="text"
               value={item.label}
               onChange={(e) => set(i, 'label', e.target.value)}
+              onMouseDown={(e) => e.stopPropagation()}
               placeholder="항목명"
               style={{ flex: 2, padding: '5px 8px', fontSize: '13px', border: '1px solid #e5e5e5', borderRadius: '6px', outline: 'none', fontFamily: 'inherit' }}
             />
@@ -103,19 +104,20 @@ function ProgressBarNodeView({
               max={100}
               value={item.value}
               onChange={(e) => set(i, 'value', e.target.value)}
+              onMouseDown={(e) => e.stopPropagation()}
               style={{ width: '58px', padding: '5px 6px', fontSize: '13px', border: '1px solid #e5e5e5', borderRadius: '6px', outline: 'none', fontFamily: 'inherit', textAlign: 'center' }}
             />
             <span style={{ fontSize: '12px', color: '#888', flexShrink: 0 }}>%</span>
             <div style={{ flex: 3, height: '6px', backgroundColor: '#f0e8d0', borderRadius: '3px', overflow: 'hidden' }}>
               <div style={{ height: '100%', width: `${item.value}%`, backgroundColor: '#c8a96e', borderRadius: '3px', transition: 'width 0.2s' }} />
             </div>
-            <button type="button" onClick={() => remove(i)}
+            <button type="button" onClick={() => remove(i)} onMouseDown={(e) => e.stopPropagation()}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ccc', fontSize: '16px', lineHeight: 1, padding: '2px 4px', flexShrink: 0 }}>
               ×
             </button>
           </div>
         ))}
-        <button type="button" onClick={add}
+        <button type="button" onClick={add} onMouseDown={(e) => e.stopPropagation()}
           style={{ fontSize: '12px', color: '#c8a96e', background: 'none', border: '1px dashed #c8a96e', borderRadius: '6px', padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>
           + 항목 추가
         </button>
