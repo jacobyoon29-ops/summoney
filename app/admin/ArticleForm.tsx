@@ -34,6 +34,8 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
       ? new Date(initial.scheduled_at).toISOString().slice(0, 16)
       : ''
   );
+  const [viewCount, setViewCount] = useState<string>(String(initial?.view_count ?? 0));
+  const [starCount, setStarCount] = useState<string>(String(initial?.star_count ?? 0));
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<null | 'draft' | 'publish' | 'delete'>(null);
 
@@ -117,6 +119,10 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
     fd.append('category', category);
     fd.append('is_published', String(publish));
     fd.append('scheduled_at', scheduledAt);
+    if (isEdit) {
+      fd.append('view_count', viewCount);
+      fd.append('star_count', starCount);
+    }
     if (coverFile) fd.append('cover', coverFile);
 
     let result;
@@ -367,6 +373,43 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
               </p>
             )}
           </div>
+
+          {/* ⑨ 통계 직접 수정 (수정 모드 전용) */}
+          {isEdit && (
+            <div style={fieldStyle}>
+              <label style={labelStyle}>통계 직접 수정</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={fieldStyle}>
+                  <label style={{ ...labelStyle, fontSize: '13px', color: '#666' }} htmlFor="view_count">
+                    조회수
+                  </label>
+                  <input
+                    id="view_count"
+                    type="number"
+                    min="0"
+                    value={viewCount}
+                    onChange={(e) => setViewCount(e.target.value)}
+                    style={inputStyle}
+                    disabled={busy}
+                  />
+                </div>
+                <div style={fieldStyle}>
+                  <label style={{ ...labelStyle, fontSize: '13px', color: '#666' }} htmlFor="star_count">
+                    ⭐ 별 수
+                  </label>
+                  <input
+                    id="star_count"
+                    type="number"
+                    min="0"
+                    value={starCount}
+                    onChange={(e) => setStarCount(e.target.value)}
+                    style={inputStyle}
+                    disabled={busy}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {error && (
             <p style={{ ...messageStyle, color: '#c0392b', backgroundColor: '#fff0f0' }}>

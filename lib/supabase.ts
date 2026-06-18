@@ -38,5 +38,7 @@ export type Article = {
   scheduled_at: string | null;
   tags: string[] | null;
   related_ids: string[] | null;
+  view_count: number;
+  star_count: number;
   created_at: string;
 };

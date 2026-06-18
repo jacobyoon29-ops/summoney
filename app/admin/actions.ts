@@ -66,6 +66,22 @@ JSON: {"ids":["uuid1","uuid2","uuid3"]}`,
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
+/** 조회수 +1 (인증 불필요) */
+export async function incrementView(id: string): Promise<void> {
+  try {
+    const supabase = getAdminClient();
+    await supabase.rpc('increment_view', { row_id: id });
+  } catch { /* 무시 */ }
+}
+
+/** 별(좋아요) +1 (인증 불필요) */
+export async function incrementStar(id: string): Promise<void> {
+  try {
+    const supabase = getAdminClient();
+    await supabase.rpc('increment_star', { row_id: id });
+  } catch { /* 무시 */ }
+}
+
 // 커버 이미지를 Storage 에 업로드하고 public URL 을 돌려준다. (없으면 null)
 async function uploadCover(
   supabase: ReturnType<typeof getAdminClient>,
@@ -200,6 +216,8 @@ export async function createArticle(formData: FormData): Promise<ActionResult> {
     scheduled_at: scheduledAt,
     tags,
     related_ids: relatedIds?.length ? relatedIds : null,
+    view_count: 0,
+    star_count: 0,
   });
   if (error) return { ok: false, error: '저장 실패: ' + error.message };
 
@@ -228,6 +246,8 @@ export async function updateArticle(formData: FormData): Promise<ActionResult> {
   const isPublished = formData.get('is_published') === 'true';
   const scheduledAtRaw = String(formData.get('scheduled_at') ?? '').trim();
   const removeCover = formData.get('remove_cover') === 'true';
+  const viewCountRaw = formData.get('view_count');
+  const starCountRaw = formData.get('star_count');
   const existingCover = String(formData.get('existing_cover') ?? '') || null;
   const cover = formData.get('cover');
 
@@ -282,6 +302,8 @@ export async function updateArticle(formData: FormData): Promise<ActionResult> {
       ...(relatedIds !== undefined
         ? { related_ids: relatedIds.length ? relatedIds : null }
         : {}),
+      ...(viewCountRaw !== null ? { view_count: Math.max(0, parseInt(String(viewCountRaw), 10) || 0) } : {}),
+      ...(starCountRaw !== null ? { star_count: Math.max(0, parseInt(String(starCountRaw), 10) || 0) } : {}),
     })
     .eq('id', id);
   if (error) return { ok: false, error: '수정 실패: ' + error.message };

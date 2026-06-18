@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { getAdminClient } from '@/lib/supabaseAdmin';
 import type { Article } from '@/lib/supabase';
 import ScrollProgressBar from '../../ScrollProgressBar';
+import ArticleActions from './ArticleActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -172,7 +173,13 @@ export default async function ArticlePage({
             {article.summary}
           </p>
         )}
-        <p style={{ color: '#bbb', fontSize: '13px', marginBottom: '32px' }}>{date}</p>
+        <p style={{ color: '#bbb', fontSize: '13px', marginBottom: '16px' }}>{date}</p>
+
+        <ArticleActions
+          articleId={article.id}
+          viewCount={article.view_count ?? 0}
+          starCount={article.star_count ?? 0}
+        />
 
         {/* 커버 이미지 */}
         {article.cover_image && (
