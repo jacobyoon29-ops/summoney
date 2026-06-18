@@ -1,6 +1,6 @@
 'use client';
 
-import { useEditor, EditorContent, ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
+import { useEditor, EditorContent, ReactNodeViewRenderer, NodeViewWrapper, type ReactNodeViewProps } from '@tiptap/react';
 import { Node, mergeAttributes } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -59,11 +59,8 @@ type PbItem = { label: string; value: number };
 function ProgressBarNodeView({
   node,
   updateAttributes,
-}: {
-  node: { attrs: { items: PbItem[] } };
-  updateAttributes: (a: Record<string, unknown>) => void;
-}) {
-  const items: PbItem[] = node.attrs.items ?? [];
+}: ReactNodeViewProps) {
+  const items: PbItem[] = (node.attrs.items as PbItem[]) ?? [];
 
   function set(i: number, field: keyof PbItem, val: string) {
     const next = items.map((item, idx) =>
