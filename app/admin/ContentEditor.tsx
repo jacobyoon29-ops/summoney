@@ -229,17 +229,18 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-      {/* 툴바 1줄: 텍스트 서식 */}
+      {/* 툴바 1행: B I S / H2 H3 / ≡ 1. / 하이라이트 / ↩ ↪ */}
       <div
         style={{
           display: 'flex',
-          flexWrap: 'wrap',
+          flexWrap: 'nowrap',
           gap: '4px',
           padding: '6px 10px',
           backgroundColor: '#f8f8f8',
           border: '1px solid #e5e5e5',
-          borderBottom: '1px solid #ececec',
+          borderBottom: '1px solid #ddd',
           borderRadius: '10px 10px 0 0',
+          alignItems: 'center',
         }}
       >
         <ToolBtn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="굵게">B</ToolBtn>
@@ -252,7 +253,6 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
         <ToolBtn onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')} title="목록">≡</ToolBtn>
         <ToolBtn onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive('orderedList')} title="번호 목록">1.</ToolBtn>
         <Divider />
-        {/* 하이라이트 */}
         <ToolBtn
           onClick={() => editor.chain().focus().toggleHighlight({ color: HIGHLIGHT_YELLOW }).run()}
           active={editor.isActive('highlight', { color: HIGHLIGHT_YELLOW })}
@@ -274,17 +274,18 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
         <ToolBtn onClick={() => editor.chain().focus().redo().run()} title="다시 실행">↪</ToolBtn>
       </div>
 
-      {/* 툴바 2줄: 블록·미디어 */}
+      {/* 툴바 2행: ❝ ❞ ! |인용 / 🖼 ▶ % */}
       <div
         style={{
           display: 'flex',
-          flexWrap: 'wrap',
+          flexWrap: 'nowrap',
           gap: '4px',
           padding: '6px 10px',
-          backgroundColor: '#f8f8f8',
+          backgroundColor: '#f0f0f0',
           border: '1px solid #e5e5e5',
           borderTop: 'none',
           borderBottom: 'none',
+          alignItems: 'center',
         }}
       >
         <ToolBtn onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} title="인용">❝</ToolBtn>
