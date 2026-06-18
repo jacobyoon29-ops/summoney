@@ -234,8 +234,8 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
         style={{
           display: 'flex',
           flexWrap: 'nowrap',
-          gap: '4px',
-          padding: '6px 10px',
+          gap: '2px',
+          padding: '5px 8px',
           backgroundColor: '#f8f8f8',
           border: '1px solid #e5e5e5',
           borderBottom: '1px solid #ddd',
@@ -279,8 +279,8 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
         style={{
           display: 'flex',
           flexWrap: 'nowrap',
-          gap: '4px',
-          padding: '6px 10px',
+          gap: '2px',
+          padding: '5px 8px',
           backgroundColor: '#f0f0f0',
           border: '1px solid #e5e5e5',
           borderTop: 'none',
@@ -461,17 +461,18 @@ function ToolBtn({
       disabled={disabled}
       title={title}
       style={{
-        padding: '4px 8px',
-        fontSize: '13px',
+        padding: '3px 5px',
+        fontSize: '11px',
         fontWeight: 600,
         border: `1px solid ${active ? '#7c3aed' : '#e0e0e0'}`,
-        borderRadius: '6px',
+        borderRadius: '4px',
         backgroundColor: active ? '#ede9fe' : '#fff',
         color: active ? '#7c3aed' : '#333',
         cursor: disabled ? 'default' : 'pointer',
-        lineHeight: 1.4,
-        minWidth: '28px',
+        lineHeight: 1.3,
+        minWidth: '22px',
         opacity: disabled ? 0.5 : 1,
+        whiteSpace: 'nowrap',
       } as CSSProperties}
     >
       {children}
