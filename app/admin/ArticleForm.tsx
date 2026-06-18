@@ -178,7 +178,21 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
 
         <div style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f0f0f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
-          {/* ① 본문 + AI 자동생성 버튼 */}
+          {/* ① 제목 */}
+          <div style={fieldStyle}>
+            <label style={labelStyle} htmlFor="article-title">제목</label>
+            <input
+              id="article-title"
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="독자에게 보이는 글 제목을 입력하세요"
+              style={{ ...inputStyle, fontSize: '18px', fontWeight: 700 }}
+              disabled={busy}
+            />
+          </div>
+
+          {/* ② 본문 + AI 자동생성 버튼 */}
           <div style={fieldStyle}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
               <label style={labelStyle} htmlFor="content">본문</label>
