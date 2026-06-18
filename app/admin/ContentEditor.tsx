@@ -94,6 +94,8 @@ function ProgressBarNodeView({
               value={item.label}
               onChange={(e) => set(i, 'label', e.target.value)}
               onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); (e.target as HTMLInputElement).focus(); }}
+              onKeyDown={(e) => e.stopPropagation()}
+              onKeyPress={(e) => e.stopPropagation()}
               placeholder="항목명"
               style={{ flex: 2, padding: '5px 8px', fontSize: '13px', border: '1px solid #e5e5e5', borderRadius: '6px', outline: 'none', fontFamily: 'inherit' }}
             />
@@ -104,6 +106,8 @@ function ProgressBarNodeView({
               value={item.value}
               onChange={(e) => set(i, 'value', e.target.value)}
               onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); (e.target as HTMLInputElement).focus(); }}
+              onKeyDown={(e) => e.stopPropagation()}
+              onKeyPress={(e) => e.stopPropagation()}
               style={{ width: '58px', padding: '5px 6px', fontSize: '13px', border: '1px solid #e5e5e5', borderRadius: '6px', outline: 'none', fontFamily: 'inherit', textAlign: 'center' }}
             />
             <span style={{ fontSize: '12px', color: '#888', flexShrink: 0 }}>%</span>
