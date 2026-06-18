@@ -55,75 +55,25 @@ const Vertquote = Node.create({
 
 type PbItem = { label: string; value: number };
 
-// 에디터 내 NodeView: 항목 입력 UI
-function ProgressBarNodeView({
-  node,
-  updateAttributes,
-}: ReactNodeViewProps) {
+// 에디터 내 NodeView: 읽기 전용 미리보기 (편집은 모달에서)
+function ProgressBarNodeView({ node }: ReactNodeViewProps) {
   const items: PbItem[] = (node.attrs.items as PbItem[]) ?? [];
-
-  function set(i: number, field: keyof PbItem, val: string) {
-    const next = items.map((item, idx) =>
-      idx === i
-        ? { ...item, [field]: field === 'value' ? Math.min(100, Math.max(0, Number(val) || 0)) : val }
-        : item
-    );
-    updateAttributes({ items: next });
-  }
-
-  function add() {
-    updateAttributes({ items: [...items, { label: '', value: 50 }] });
-  }
-
-  function remove(i: number) {
-    updateAttributes({ items: items.filter((_, idx) => idx !== i) });
-  }
-
   return (
     <NodeViewWrapper contentEditable={false}>
-      <div
-        style={{
-          border: '1.5px solid #e5dcc8', borderRadius: '10px',
-          padding: '14px 16px', backgroundColor: '#fffdf7', margin: '0.5em 0',
-        }}
-      >
+      <div style={{ border: '1.5px solid #e5dcc8', borderRadius: '10px', padding: '14px 16px', backgroundColor: '#fffdf7', margin: '0.5em 0' }}>
+        <div style={{ fontSize: '11px', color: '#c8a96e', fontWeight: 700, marginBottom: '10px', letterSpacing: '0.05em' }}>📊 프로그레스 바</div>
         {items.map((item, i) => (
-          <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '10px' }}>
-            <input
-              type="text"
-              value={item.label}
-              onChange={(e) => set(i, 'label', e.target.value)}
-              onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); (e.target as HTMLInputElement).focus(); }}
-              onKeyDown={(e) => e.stopPropagation()}
-              onKeyPress={(e) => e.stopPropagation()}
-              placeholder="항목명"
-              style={{ flex: 2, padding: '5px 8px', fontSize: '13px', border: '1px solid #e5e5e5', borderRadius: '6px', outline: 'none', fontFamily: 'inherit' }}
-            />
-            <input
-              type="number"
-              min={0}
-              max={100}
-              value={item.value}
-              onChange={(e) => set(i, 'value', e.target.value)}
-              onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); (e.target as HTMLInputElement).focus(); }}
-              onKeyDown={(e) => e.stopPropagation()}
-              onKeyPress={(e) => e.stopPropagation()}
-              style={{ width: '58px', padding: '5px 6px', fontSize: '13px', border: '1px solid #e5e5e5', borderRadius: '6px', outline: 'none', fontFamily: 'inherit', textAlign: 'center' }}
-            />
-            <span style={{ fontSize: '12px', color: '#888', flexShrink: 0 }}>%</span>
-            <div style={{ flex: 3, height: '6px', backgroundColor: '#f0e8d0', borderRadius: '3px', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${item.value}%`, backgroundColor: '#c8a96e', borderRadius: '3px', transition: 'width 0.2s' }} />
+          <div key={i} style={{ marginBottom: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <span style={{ fontSize: '13px', color: '#333' }}>{item.label || '(항목명 없음)'}</span>
+              <span style={{ fontSize: '12px', color: '#c8a96e', fontWeight: 700 }}>{item.value}%</span>
             </div>
-            <button type="button" onClick={() => remove(i)} onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ccc', fontSize: '16px', lineHeight: 1, padding: '2px 4px', flexShrink: 0 }}>
-              ×
-            </button>
+            <div style={{ height: '6px', backgroundColor: '#f0e8d0', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${item.value}%`, backgroundColor: '#c8a96e', borderRadius: '3px' }} />
+            </div>
           </div>
         ))}
-        <button type="button" onClick={add} onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-          style={{ fontSize: '12px', color: '#c8a96e', background: 'none', border: '1px dashed #c8a96e', borderRadius: '6px', padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>
-          + 항목 추가
-        </button>
+        <div style={{ fontSize: '11px', color: '#bbb', marginTop: '8px' }}>※ 내용 수정은 블록 선택 후 툴바 % 버튼 클릭</div>
       </div>
     </NodeViewWrapper>
   );
@@ -172,6 +122,8 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
   const [youtubePrompt, setYoutubePrompt] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [pbModal, setPbModal] = useState(false);
+  const [pbItems, setPbItems] = useState<PbItem[]>([{ label: '', value: 50 }]);
 
   const editor = useEditor({
     extensions: [
@@ -274,7 +226,7 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
         <Sep />
         <TB onClick={() => fileInputRef.current?.click()} disabled={uploading || disabled} title="이미지 삽입">{uploading ? '⏳' : '🖼'}</TB>
         <TB onClick={() => setYoutubePrompt(v => !v)} active={youtubePrompt} title="유튜브 임베드">▶</TB>
-        <TB onClick={() => editor.chain().focus().insertContent({ type: 'progressBar', attrs: { items: [{ label: '', value: 50 }] } }).run()} title="프로그레스 바">%</TB>
+        <TB onClick={() => { setPbItems([{ label: '', value: 50 }]); setPbModal(true); }} active={pbModal} title="프로그레스 바">%</TB>
         <Sep />
         <TB onClick={() => editor.chain().focus().undo().run()} title="실행 취소">↩</TB>
         <TB onClick={() => editor.chain().focus().redo().run()} title="다시 실행">↪</TB>
@@ -351,6 +303,74 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
       />
 
       <style>{editorStyles}</style>
+
+      {/* 프로그레스 바 모달 */}
+      {pbModal && (
+        <div style={{
+          position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999,
+        }}>
+          <div style={{
+            backgroundColor: '#fff', borderRadius: '16px', padding: '28px 28px 24px',
+            width: '480px', maxWidth: '95vw', boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#111' }}>📊 프로그레스 바 추가</h3>
+              <button type="button" onClick={() => setPbModal(false)}
+                style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#aaa', lineHeight: 1 }}>×</button>
+            </div>
+
+            {pbItems.map((item, i) => (
+              <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
+                <input
+                  type="text"
+                  value={item.label}
+                  onChange={(e) => setPbItems(prev => prev.map((p, idx) => idx === i ? { ...p, label: e.target.value } : p))}
+                  placeholder="항목명"
+                  autoFocus={i === 0}
+                  style={{ flex: 1, padding: '8px 10px', fontSize: '14px', border: '1.5px solid #e5e5e5', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
+                />
+                <input
+                  type="number"
+                  min={0} max={100}
+                  value={item.value}
+                  onChange={(e) => setPbItems(prev => prev.map((p, idx) => idx === i ? { ...p, value: Math.min(100, Math.max(0, Number(e.target.value) || 0)) } : p))}
+                  style={{ width: '64px', padding: '8px 6px', fontSize: '14px', border: '1.5px solid #e5e5e5', borderRadius: '8px', outline: 'none', fontFamily: 'inherit', textAlign: 'center' }}
+                />
+                <span style={{ fontSize: '13px', color: '#888' }}>%</span>
+                <div style={{ width: '80px', height: '6px', background: '#f0e8d0', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${item.value}%`, background: '#c8a96e', borderRadius: '3px' }} />
+                </div>
+                {pbItems.length > 1 && (
+                  <button type="button" onClick={() => setPbItems(prev => prev.filter((_, idx) => idx !== i))}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ccc', fontSize: '18px', lineHeight: 1, padding: '2px' }}>×</button>
+                )}
+              </div>
+            ))}
+
+            <button type="button"
+              onClick={() => setPbItems(prev => [...prev, { label: '', value: 50 }])}
+              style={{ fontSize: '13px', color: '#c8a96e', background: 'none', border: '1px dashed #c8a96e', borderRadius: '8px', padding: '6px 14px', cursor: 'pointer', fontWeight: 600, marginBottom: '20px', display: 'block' }}>
+              + 항목 추가
+            </button>
+
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <button type="button" onClick={() => setPbModal(false)}
+                style={{ padding: '8px 20px', fontSize: '14px', background: 'none', border: '1.5px solid #e5e5e5', borderRadius: '8px', cursor: 'pointer', color: '#888', fontWeight: 600 }}>
+                취소
+              </button>
+              <button type="button"
+                onClick={() => {
+                  editor?.chain().focus().insertContent({ type: 'progressBar', attrs: { items: pbItems } }).run();
+                  setPbModal(false);
+                }}
+                style={{ padding: '8px 24px', fontSize: '14px', fontWeight: 700, backgroundColor: '#c8a96e', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
+                삽입
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
