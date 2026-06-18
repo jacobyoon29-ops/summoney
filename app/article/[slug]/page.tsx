@@ -22,8 +22,6 @@ const CATEGORY_TEXT: Record<string, string> = {
   브랜드: '#7d6608',
 };
 
-// 한글 slug 는 URL 에서 percent-encoding(%EB..) 으로 들어오므로 디코드해서 DB 와 맞춘다.
-// 우리 slug 에는 '%' 가 없어 이미 디코드된 값에 적용해도 무해하다.
 function decodeSlug(slug: string): string {
   try {
     return decodeURIComponent(slug);
@@ -32,7 +30,6 @@ function decodeSlug(slug: string): string {
   }
 }
 
-// 발행된 글만 slug 로 조회 (임시저장 글은 직접 URL 로도 접근 불가)
 async function getPublishedBySlug(slug: string): Promise<Article | null> {
   try {
     const supabase = getAdminClient();
@@ -46,6 +43,25 @@ async function getPublishedBySlug(slug: string): Promise<Article | null> {
     return data as Article;
   } catch {
     return null;
+  }
+}
+
+async function getRelatedArticles(ids: string[]): Promise<Article[]> {
+  if (!ids.length) return [];
+  try {
+    const supabase = getAdminClient();
+    const { data } = await supabase
+      .from('articles')
+      .select('*')
+      .in('id', ids)
+      .eq('is_published', true);
+    if (!data) return [];
+    // related_ids 순서 유지
+    return ids
+      .map((id) => data.find((a) => a.id === id))
+      .filter((a): a is Article => !!a);
+  } catch {
+    return [];
   }
 }
 
@@ -72,6 +88,7 @@ export default async function ArticlePage({
   const article = await getPublishedBySlug(slug);
   if (!article) notFound();
 
+  const related = await getRelatedArticles(article.related_ids ?? []);
   const date = (article.published_at ?? article.created_at).slice(0, 10).replace(/-/g, '.');
 
   return (
@@ -82,10 +99,8 @@ export default async function ArticlePage({
         fontFamily: '"Pretendard", "Apple SD Gothic Neo", sans-serif',
       }}
     >
-      {/* 스크롤 진행 바 16px */}
       <ScrollProgressBar />
 
-      {/* 상단 바 */}
       <header
         style={{
           borderBottom: '1px solid #f0f0f0',
@@ -109,7 +124,7 @@ export default async function ArticlePage({
         </div>
       </header>
 
-      <article style={{ maxWidth: '720px', margin: '0 auto', padding: '40px 20px 80px' }}>
+      <article style={{ maxWidth: '720px', margin: '0 auto', padding: '40px 20px 0' }}>
         <Link
           href="/"
           style={{ color: '#888', fontSize: '14px', textDecoration: 'none', display: 'inline-block', marginBottom: '24px' }}
@@ -161,16 +176,11 @@ export default async function ArticlePage({
           <img
             src={article.cover_image}
             alt={article.title}
-            style={{
-              width: '100%',
-              borderRadius: '16px',
-              marginBottom: '32px',
-              display: 'block',
-            }}
+            style={{ width: '100%', borderRadius: '16px', marginBottom: '32px', display: 'block' }}
           />
         )}
 
-        {/* 본문 (줄바꿈 유지) */}
+        {/* 본문 */}
         <div
           style={{
             color: '#222',
@@ -178,11 +188,121 @@ export default async function ArticlePage({
             lineHeight: 1.8,
             whiteSpace: 'pre-wrap',
             wordBreak: 'keep-all',
+            paddingBottom: '64px',
           }}
         >
           {article.content}
         </div>
       </article>
+
+      {/* 관련 글 섹션 */}
+      {related.length > 0 && (
+        <section
+          style={{
+            borderTop: '1px solid #f0f0f0',
+            backgroundColor: '#fafafa',
+            padding: '48px 20px 64px',
+          }}
+        >
+          <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+            <h2
+              style={{
+                fontSize: '18px',
+                fontWeight: 800,
+                color: '#111',
+                letterSpacing: '-0.02em',
+                marginBottom: '24px',
+              }}
+            >
+              관련 글
+            </h2>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${related.length}, 1fr)`,
+                gap: '16px',
+              }}
+            >
+              {related.map((rel) => {
+                const relDate = (rel.published_at ?? rel.created_at).slice(0, 10).replace(/-/g, '.');
+                return (
+                  <Link
+                    key={rel.id}
+                    href={`/article/${rel.slug}`}
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
+                    <div
+                      style={{
+                        backgroundColor: '#fff',
+                        borderRadius: '14px',
+                        border: '1px solid #f0f0f0',
+                        overflow: 'hidden',
+                        transition: 'box-shadow 0.2s ease',
+                        height: '100%',
+                      }}
+                    >
+                      {rel.cover_image && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={rel.cover_image}
+                          alt={rel.title}
+                          style={{ width: '100%', height: '140px', objectFit: 'cover', display: 'block' }}
+                        />
+                      )}
+                      <div style={{ padding: '16px' }}>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '2px 8px',
+                            borderRadius: '20px',
+                            backgroundColor: CATEGORY_COLORS[rel.category] ?? '#eee',
+                            color: CATEGORY_TEXT[rel.category] ?? '#333',
+                          }}
+                        >
+                          {rel.category}
+                        </span>
+                        <p
+                          style={{
+                            fontSize: '14px',
+                            fontWeight: 700,
+                            color: '#111',
+                            lineHeight: 1.5,
+                            margin: '8px 0 6px',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {rel.title}
+                        </p>
+                        {rel.summary && (
+                          <p
+                            style={{
+                              fontSize: '12px',
+                              color: '#888',
+                              lineHeight: 1.5,
+                              margin: '0 0 10px',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            {rel.summary}
+                          </p>
+                        )}
+                        <p style={{ fontSize: '11px', color: '#ccc', margin: 0 }}>{relDate}</p>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

@@ -1,8 +1,68 @@
 'use server';
 
+import Anthropic from '@anthropic-ai/sdk';
 import { CATEGORIES, COVER_BUCKET, type Article } from '@/lib/supabase';
 import { getAdminClient } from '@/lib/supabaseAdmin';
 import { isAuthed } from './auth';
+
+// 발행 시 기존 글 목록과 비교해 관련 글 ID 3개를 선택한다.
+// AI 호출 실패 시 빈 배열을 반환해 발행 자체를 막지 않는다.
+async function pickRelatedIds(
+  supabase: ReturnType<typeof getAdminClient>,
+  currentId: string | null,
+  title: string,
+  content: string
+): Promise<string[]> {
+  try {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) return [];
+
+    // 발행된 글 목록 (현재 글 제외, 최대 50개)
+    let query = supabase
+      .from('articles')
+      .select('id, title, summary, category')
+      .eq('is_published', true)
+      .order('published_at', { ascending: false })
+      .limit(50);
+    if (currentId) query = query.neq('id', currentId);
+    const { data: candidates } = await query;
+    if (!candidates || candidates.length === 0) return [];
+
+    const list = candidates
+      .map((a, i) => `[${i}] id=${a.id} | ${a.category} | ${a.title}${a.summary ? ' — ' + a.summary : ''}`)
+      .join('\n');
+
+    const client = new Anthropic({ apiKey });
+    const message = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 128,
+      messages: [{
+        role: 'user',
+        content: `써머니(비즈니스/트렌드/ESG/재테크 미디어)의 편집자입니다.
+아래 [현재 글]과 가장 관련성 높은 글 3개를 [후보 목록]에서 골라 id만 JSON 배열로 반환하세요.
+관련성 기준: 동일 주제, 연관 키워드, 독자가 이어서 읽을 만한 흐름.
+후보가 3개 미만이면 있는 것만 반환. JSON 외 텍스트 금지.
+
+[현재 글]
+제목: ${title}
+본문(앞 500자): ${content.slice(0, 500)}
+
+[후보 목록]
+${list}
+
+JSON: {"ids":["uuid1","uuid2","uuid3"]}`,
+      }],
+    });
+
+    const text = message.content[0].type === 'text' ? message.content[0].text : '';
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) return [];
+    const parsed = JSON.parse(match[0]);
+    return Array.isArray(parsed.ids) ? parsed.ids.slice(0, 3) : [];
+  } catch {
+    return [];
+  }
+}
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -103,7 +163,10 @@ export async function createArticle(formData: FormData): Promise<ActionResult> {
   const content = String(formData.get('content') ?? '').trim();
   const category = String(formData.get('category') ?? '');
   const summaryRaw = String(formData.get('summary') ?? '').trim();
+  const slugRaw = String(formData.get('slug') ?? '').trim();
+  const tagsRaw = String(formData.get('tags') ?? '').trim();
   const isPublished = formData.get('is_published') === 'true';
+  const scheduledAtRaw = String(formData.get('scheduled_at') ?? '').trim();
   const cover = formData.get('cover');
 
   const invalid = validate(title, content, category);
@@ -116,15 +179,27 @@ export async function createArticle(formData: FormData): Promise<ActionResult> {
     coverImage = up.url;
   }
 
+  const tags = tagsRaw ? tagsRaw.split(',').map((t) => t.trim()).filter(Boolean) : null;
+  const scheduledAt = scheduledAtRaw ? new Date(scheduledAtRaw).toISOString() : null;
+  const finalPublished = scheduledAt ? false : isPublished;
+  const slug = slugRaw ? `${slugRaw}-${Date.now().toString(36)}` : makeSlug(title);
+
+  const relatedIds = finalPublished
+    ? await pickRelatedIds(supabase, null, title, content)
+    : null;
+
   const { error } = await supabase.from('articles').insert({
     title,
     content,
     category,
     summary: summaryRaw || null,
-    slug: makeSlug(title),
+    slug,
     cover_image: coverImage,
-    is_published: isPublished,
-    published_at: isPublished ? new Date().toISOString() : null,
+    is_published: finalPublished,
+    published_at: finalPublished ? new Date().toISOString() : null,
+    scheduled_at: scheduledAt,
+    tags,
+    related_ids: relatedIds?.length ? relatedIds : null,
   });
   if (error) return { ok: false, error: '저장 실패: ' + error.message };
 
@@ -149,7 +224,9 @@ export async function updateArticle(formData: FormData): Promise<ActionResult> {
   const content = String(formData.get('content') ?? '').trim();
   const category = String(formData.get('category') ?? '');
   const summaryRaw = String(formData.get('summary') ?? '').trim();
+  const tagsRaw = String(formData.get('tags') ?? '').trim();
   const isPublished = formData.get('is_published') === 'true';
+  const scheduledAtRaw = String(formData.get('scheduled_at') ?? '').trim();
   const removeCover = formData.get('remove_cover') === 'true';
   const existingCover = String(formData.get('existing_cover') ?? '') || null;
   const cover = formData.get('cover');
@@ -174,12 +251,21 @@ export async function updateArticle(formData: FormData): Promise<ActionResult> {
     .eq('id', id)
     .maybeSingle();
 
+  const tags = tagsRaw ? tagsRaw.split(',').map((t) => t.trim()).filter(Boolean) : null;
+  const scheduledAt = scheduledAtRaw ? new Date(scheduledAtRaw).toISOString() : null;
+  const finalPublished = scheduledAt ? false : isPublished;
+
   let publishedAt: string | null = null;
-  if (isPublished) {
+  if (finalPublished) {
     publishedAt = current?.is_published && current?.published_at
       ? current.published_at
       : new Date().toISOString();
   }
+
+  // 발행할 때만 관련 글 추천 갱신 (임시저장·예약 시에는 건드리지 않음)
+  const relatedIds = finalPublished
+    ? await pickRelatedIds(supabase, id, title, content)
+    : undefined;
 
   const { error } = await supabase
     .from('articles')
@@ -189,8 +275,13 @@ export async function updateArticle(formData: FormData): Promise<ActionResult> {
       category,
       summary: summaryRaw || null,
       cover_image: coverImage,
-      is_published: isPublished,
+      is_published: finalPublished,
       published_at: publishedAt,
+      scheduled_at: scheduledAt,
+      tags,
+      ...(relatedIds !== undefined
+        ? { related_ids: relatedIds.length ? relatedIds : null }
+        : {}),
     })
     .eq('id', id);
   if (error) return { ok: false, error: '수정 실패: ' + error.message };
