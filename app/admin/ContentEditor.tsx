@@ -80,9 +80,8 @@ function ProgressBarNodeView({
   }
 
   return (
-    <NodeViewWrapper>
+    <NodeViewWrapper contentEditable={false}>
       <div
-        contentEditable={false}
         style={{
           border: '1.5px solid #e5dcc8', borderRadius: '10px',
           padding: '14px 16px', backgroundColor: '#fffdf7', margin: '0.5em 0',
@@ -364,6 +363,7 @@ function TB({
   return (
     <button
       type="button"
+      onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
       disabled={disabled}
       title={title}
