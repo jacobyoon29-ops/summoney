@@ -228,146 +228,95 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
   if (!editor) return null;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-      {/* 툴바 1행: B I S / H2 H3 / ≡ 1. / 하이라이트 / ↩ ↪ */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'nowrap',
-          gap: '2px',
-          padding: '5px 8px',
-          backgroundColor: '#f8f8f8',
-          border: '1px solid #e5e5e5',
-          borderBottom: '1px solid #ddd',
-          borderRadius: '10px 10px 0 0',
-          alignItems: 'center',
-        }}
-      >
-        <ToolBtn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="굵게">B</ToolBtn>
-        <ToolBtn onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive('italic')} title="기울임"><i>I</i></ToolBtn>
-        <ToolBtn onClick={() => editor.chain().focus().toggleStrike().run()} active={editor.isActive('strike')} title="취소선"><s>S</s></ToolBtn>
-        <Divider />
-        <ToolBtn onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} active={editor.isActive('heading', { level: 2 })} title="제목 2">H2</ToolBtn>
-        <ToolBtn onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} active={editor.isActive('heading', { level: 3 })} title="제목 3">H3</ToolBtn>
-        <Divider />
-        <ToolBtn onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')} title="목록">≡</ToolBtn>
-        <ToolBtn onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive('orderedList')} title="번호 목록">1.</ToolBtn>
-        <Divider />
-        <ToolBtn
-          onClick={() => editor.chain().focus().toggleHighlight({ color: HIGHLIGHT_YELLOW }).run()}
-          active={editor.isActive('highlight', { color: HIGHLIGHT_YELLOW })}
-          disabled={disabled}
-          title="노랑 하이라이트"
-        >
-          <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '3px', backgroundColor: HIGHLIGHT_YELLOW, border: '1px solid #e0c000', verticalAlign: 'middle' }} />
-        </ToolBtn>
-        <ToolBtn
-          onClick={() => editor.chain().focus().toggleHighlight({ color: HIGHLIGHT_SKY }).run()}
-          active={editor.isActive('highlight', { color: HIGHLIGHT_SKY })}
-          disabled={disabled}
-          title="하늘색 하이라이트"
-        >
-          <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '3px', backgroundColor: HIGHLIGHT_SKY, border: '1px solid #5ba8d0', verticalAlign: 'middle' }} />
-        </ToolBtn>
-        <Divider />
-        <ToolBtn onClick={() => editor.chain().focus().undo().run()} title="실행 취소">↩</ToolBtn>
-        <ToolBtn onClick={() => editor.chain().focus().redo().run()} title="다시 실행">↪</ToolBtn>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {/* ── 툴바 1행: 서식 ── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '3px',
+        padding: '6px 10px',
+        background: '#f5f5f5',
+        border: '1px solid #ddd',
+        borderBottom: '1px solid #ccc',
+        borderRadius: '10px 10px 0 0',
+      }}>
+        <TB onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="굵게">B</TB>
+        <TB onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive('italic')} title="기울임"><i>I</i></TB>
+        <TB onClick={() => editor.chain().focus().toggleStrike().run()} active={editor.isActive('strike')} title="취소선"><s>S</s></TB>
+        <Sep />
+        <TB onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} active={editor.isActive('heading', { level: 2 })} title="제목 2">H2</TB>
+        <TB onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} active={editor.isActive('heading', { level: 3 })} title="제목 3">H3</TB>
+        <Sep />
+        <TB onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')} title="불릿 목록">•</TB>
+        <TB onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive('orderedList')} title="번호 목록">1.</TB>
+        <Sep />
+        <TB onClick={() => editor.chain().focus().undo().run()} title="실행 취소">↩</TB>
+        <TB onClick={() => editor.chain().focus().redo().run()} title="다시 실행">↪</TB>
       </div>
 
-      {/* 툴바 2행: ❝ ❞ ! |인용 / 🖼 ▶ % */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'nowrap',
-          gap: '2px',
-          padding: '5px 8px',
-          backgroundColor: '#f0f0f0',
-          border: '1px solid #e5e5e5',
-          borderTop: 'none',
-          borderBottom: 'none',
-          alignItems: 'center',
-        }}
-      >
-        <ToolBtn onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} title="인용">❝</ToolBtn>
+      {/* ── 툴바 2행: 블록·미디어 ── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '3px',
+        padding: '6px 10px',
+        background: '#eeeeee',
+        border: '1px solid #ddd',
+        borderTop: 'none',
+        borderBottom: 'none',
+      }}>
         {/* 풀쿼트 */}
-        <ToolBtn
-          onClick={() => {
-            if (editor.isActive('pullquote')) {
-              editor.chain().focus().setNode('paragraph').run();
-            } else {
-              editor.chain().focus().setNode('pullquote').run();
-            }
-          }}
+        <TB
+          onClick={() => editor.isActive('pullquote') ? editor.chain().focus().setNode('paragraph').run() : editor.chain().focus().setNode('pullquote').run()}
           active={editor.isActive('pullquote')}
-          disabled={disabled}
-          title="풀쿼트 (핵심 문장 강조)"
+          title="풀쿼트"
         >
-          <span style={{ fontStyle: 'italic', fontWeight: 800, color: editor.isActive('pullquote') ? '#7c3aed' : '#c8a96e', fontSize: '15px' }}>❞</span>
-        </ToolBtn>
-        {/* 박스 강조 블록 */}
-        <ToolBtn
-          onClick={() => {
-            if (editor.isActive('callout')) {
-              editor.chain().focus().lift('callout').run();
-            } else {
-              editor.chain().focus().wrapIn('callout').run();
-            }
-          }}
+          <span style={{ fontStyle: 'italic', fontWeight: 800, fontSize: '14px', color: editor.isActive('pullquote') ? '#7c3aed' : '#c8a96e' }}>❝</span>
+        </TB>
+        {/* 닫는따옴표(일반 인용) */}
+        <TB onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} title="인용구">
+          <span style={{ fontSize: '14px' }}>❞</span>
+        </TB>
+        {/* 박스 강조 */}
+        <TB
+          onClick={() => editor.isActive('callout') ? editor.chain().focus().lift('callout').run() : editor.chain().focus().wrapIn('callout').run()}
           active={editor.isActive('callout')}
-          disabled={disabled}
-          title="박스 강조 블록"
+          title="박스 강조"
         >
-          <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', border: `2px solid ${editor.isActive('callout') ? '#7c3aed' : '#6b7280'}`, borderRadius: '3px', fontSize: '9px', fontWeight: 900, color: editor.isActive('callout') ? '#7c3aed' : '#6b7280' }}>!</span>
-        </ToolBtn>
-        {/* 버티컬 라인 인용구 */}
-        <ToolBtn
-          onClick={() => {
-            if (editor.isActive('vertquote')) {
-              editor.chain().focus().setNode('paragraph').run();
-            } else {
-              editor.chain().focus().setNode('vertquote').run();
-            }
-          }}
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            width: '13px', height: '13px', fontSize: '9px', fontWeight: 900,
+            border: `2px solid ${editor.isActive('callout') ? '#7c3aed' : '#6b7280'}`,
+            borderRadius: '3px', color: editor.isActive('callout') ? '#7c3aed' : '#6b7280',
+          }}>!</span>
+        </TB>
+        {/* 버티컬 인용 */}
+        <TB
+          onClick={() => editor.isActive('vertquote') ? editor.chain().focus().setNode('paragraph').run() : editor.chain().focus().setNode('vertquote').run()}
           active={editor.isActive('vertquote')}
-          disabled={disabled}
-          title="버티컬 라인 인용구"
+          title="버티컬 인용"
         >
-          <span style={{ display: 'inline-flex', gap: '3px', alignItems: 'center' }}>
-            <span style={{ width: '3px', height: '13px', borderRadius: '2px', backgroundColor: editor.isActive('vertquote') ? '#7c3aed' : '#c8a96e', display: 'inline-block' }} />
-            <span style={{ fontSize: '11px', color: editor.isActive('vertquote') ? '#7c3aed' : '#888', fontStyle: 'italic' }}>인용</span>
+          <span style={{ display: 'inline-flex', gap: '2px', alignItems: 'center' }}>
+            <span style={{ width: '3px', height: '12px', borderRadius: '2px', background: editor.isActive('vertquote') ? '#7c3aed' : '#c8a96e', display: 'inline-block' }} />
+            <span style={{ fontSize: '10px', fontStyle: 'italic', color: editor.isActive('vertquote') ? '#7c3aed' : '#888' }}>인용</span>
           </span>
-        </ToolBtn>
-        <Divider />
-        {/* 이미지/GIF 삽입 */}
-        <ToolBtn
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading || disabled}
-          title="이미지·GIF 삽입"
-        >
+        </TB>
+        <Sep />
+        {/* 노랑 하이라이트 */}
+        <TB onClick={() => editor.chain().focus().toggleHighlight({ color: HIGHLIGHT_YELLOW }).run()} active={editor.isActive('highlight', { color: HIGHLIGHT_YELLOW })} title="노랑 하이라이트">
+          <span style={{ display: 'inline-block', width: '14px', height: '14px', borderRadius: '3px', background: HIGHLIGHT_YELLOW, border: '1px solid #c8a000' }} />
+        </TB>
+        {/* 하늘 하이라이트 */}
+        <TB onClick={() => editor.chain().focus().toggleHighlight({ color: HIGHLIGHT_SKY }).run()} active={editor.isActive('highlight', { color: HIGHLIGHT_SKY })} title="하늘 하이라이트">
+          <span style={{ display: 'inline-block', width: '14px', height: '14px', borderRadius: '3px', background: HIGHLIGHT_SKY, border: '1px solid #4a9cc0' }} />
+        </TB>
+        <Sep />
+        {/* 이미지 */}
+        <TB onClick={() => fileInputRef.current?.click()} disabled={uploading || disabled} title="이미지 삽입">
           {uploading ? '⏳' : '🖼'}
-        </ToolBtn>
-        {/* 유튜브 임베드 */}
-        <ToolBtn
-          onClick={() => setYoutubePrompt((v) => !v)}
-          active={youtubePrompt}
-          disabled={disabled}
-          title="유튜브 임베드"
-        >
-          ▶
-        </ToolBtn>
+        </TB>
+        {/* 유튜브 */}
+        <TB onClick={() => setYoutubePrompt(v => !v)} active={youtubePrompt} title="유튜브 임베드">▶</TB>
         {/* 프로그레스 바 */}
-        <ToolBtn
-          onClick={() =>
-            editor.chain().focus().insertContent({
-              type: 'progressBar',
-              attrs: { items: [{ label: '', value: 50 }] },
-            }).run()
-          }
-          disabled={disabled}
-          title="프로그레스 바 삽입"
-        >
-          <span style={{ fontSize: '12px', fontWeight: 800 }}>%</span>
-        </ToolBtn>
+        <TB onClick={() => editor.chain().focus().insertContent({ type: 'progressBar', attrs: { items: [{ label: '', value: 50 }] } }).run()} title="프로그레스 바">
+          <span style={{ fontSize: '11px', fontWeight: 800 }}>%</span>
+        </TB>
       </div>
 
       {/* 유튜브 URL 입력창 */}
@@ -445,7 +394,7 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
   );
 }
 
-function ToolBtn({
+function TB({
   onClick, active, disabled, title, children,
 }: {
   onClick: () => void;
@@ -461,18 +410,19 @@ function ToolBtn({
       disabled={disabled}
       title={title}
       style={{
-        padding: '3px 5px',
-        fontSize: '11px',
+        padding: '3px 6px',
+        fontSize: '12px',
         fontWeight: 600,
-        border: `1px solid ${active ? '#7c3aed' : '#e0e0e0'}`,
+        border: `1px solid ${active ? '#7c3aed' : '#d0d0d0'}`,
         borderRadius: '4px',
         backgroundColor: active ? '#ede9fe' : '#fff',
         color: active ? '#7c3aed' : '#333',
         cursor: disabled ? 'default' : 'pointer',
-        lineHeight: 1.3,
-        minWidth: '22px',
-        opacity: disabled ? 0.5 : 1,
+        lineHeight: 1.4,
+        minWidth: '26px',
+        opacity: disabled ? 0.4 : 1,
         whiteSpace: 'nowrap',
+        flexShrink: 0,
       } as CSSProperties}
     >
       {children}
@@ -480,8 +430,8 @@ function ToolBtn({
   );
 }
 
-function Divider() {
-  return <span style={{ width: '1px', backgroundColor: '#e0e0e0', margin: '2px 2px', alignSelf: 'stretch' }} />;
+function Sep() {
+  return <span style={{ width: '1px', background: '#ccc', margin: '0 2px', alignSelf: 'stretch' }} />;
 }
 
 const editorStyles = `
