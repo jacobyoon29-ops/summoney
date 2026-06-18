@@ -61,7 +61,6 @@ function ProgressBarNodeView({ node }: ReactNodeViewProps) {
   return (
     <NodeViewWrapper contentEditable={false}>
       <div style={{ border: '1.5px solid #e5dcc8', borderRadius: '10px', padding: '14px 16px', backgroundColor: '#fffdf7', margin: '0.5em 0' }}>
-        <div style={{ fontSize: '11px', color: '#c8a96e', fontWeight: 700, marginBottom: '10px', letterSpacing: '0.05em' }}>📊 프로그레스 바</div>
         {items.map((item, i) => (
           <div key={i} style={{ marginBottom: '10px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
@@ -73,7 +72,6 @@ function ProgressBarNodeView({ node }: ReactNodeViewProps) {
             </div>
           </div>
         ))}
-        <div style={{ fontSize: '11px', color: '#bbb', marginTop: '8px' }}>※ 내용 수정은 블록 선택 후 툴바 % 버튼 클릭</div>
       </div>
     </NodeViewWrapper>
   );
@@ -284,7 +282,7 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
         style={{
           border: '1px solid #e5e5e5',
           borderRadius: '0 0 10px 10px',
-          backgroundColor: '#fff',
+          backgroundColor: '#fafafa',
           minHeight: '320px',
           cursor: 'text',
         }}
