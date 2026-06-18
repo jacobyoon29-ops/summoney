@@ -326,14 +326,14 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
                   onChange={(e) => setPbItems(prev => prev.map((p, idx) => idx === i ? { ...p, label: e.target.value } : p))}
                   placeholder="항목명"
                   autoFocus={i === 0}
-                  style={{ flex: 1, padding: '8px 10px', fontSize: '14px', border: '1.5px solid #e5e5e5', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
+                  style={{ flex: 1, padding: '8px 10px', fontSize: '14px', border: '1.5px solid #e5e5e5', borderRadius: '8px', outline: 'none', fontFamily: 'inherit', color: '#333' }}
                 />
                 <input
                   type="number"
                   min={0} max={100}
                   value={item.value}
                   onChange={(e) => setPbItems(prev => prev.map((p, idx) => idx === i ? { ...p, value: Math.min(100, Math.max(0, Number(e.target.value) || 0)) } : p))}
-                  style={{ width: '64px', padding: '8px 6px', fontSize: '14px', border: '1.5px solid #e5e5e5', borderRadius: '8px', outline: 'none', fontFamily: 'inherit', textAlign: 'center' }}
+                  style={{ width: '64px', padding: '8px 6px', fontSize: '14px', border: '1.5px solid #e5e5e5', borderRadius: '8px', outline: 'none', fontFamily: 'inherit', textAlign: 'center', color: '#333' }}
                 />
                 <span style={{ fontSize: '13px', color: '#888' }}>%</span>
                 <div style={{ width: '80px', height: '6px', background: '#f0e8d0', borderRadius: '3px', overflow: 'hidden' }}>
