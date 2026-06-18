@@ -111,13 +111,13 @@ function ProgressBarNodeView({
             <div style={{ flex: 3, height: '6px', backgroundColor: '#f0e8d0', borderRadius: '3px', overflow: 'hidden' }}>
               <div style={{ height: '100%', width: `${item.value}%`, backgroundColor: '#c8a96e', borderRadius: '3px', transition: 'width 0.2s' }} />
             </div>
-            <button type="button" onClick={() => remove(i)} onMouseDown={(e) => e.stopPropagation()}
+            <button type="button" onClick={() => remove(i)} onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ccc', fontSize: '16px', lineHeight: 1, padding: '2px 4px', flexShrink: 0 }}>
               ×
             </button>
           </div>
         ))}
-        <button type="button" onClick={add} onMouseDown={(e) => e.stopPropagation()}
+        <button type="button" onClick={add} onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
           style={{ fontSize: '12px', color: '#c8a96e', background: 'none', border: '1px dashed #c8a96e', borderRadius: '6px', padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>
           + 항목 추가
         </button>
