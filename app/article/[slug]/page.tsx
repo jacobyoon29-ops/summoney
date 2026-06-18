@@ -6,6 +6,7 @@ import type { Article } from '@/lib/supabase';
 import ScrollProgressBar from '../../ScrollProgressBar';
 import ArticleActions from './ArticleActions';
 import HighlightObserver from './HighlightObserver';
+import NumberCountup from './NumberCountup';
 
 export const dynamic = 'force-dynamic';
 
@@ -201,6 +202,7 @@ export default async function ArticlePage({
               style={{ paddingBottom: '64px' }}
             />
             <HighlightObserver />
+            <NumberCountup />
           </>
         ) : (
           <div
