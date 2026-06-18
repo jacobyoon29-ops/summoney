@@ -1,6 +1,6 @@
 'use client';
 
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
 import { Node, mergeAttributes } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -51,6 +51,114 @@ const Vertquote = Node.create({
   },
 });
 
+// ───── 프로그레스 바 노드 ─────
+
+type PbItem = { label: string; value: number };
+
+// 에디터 내 NodeView: 항목 입력 UI
+function ProgressBarNodeView({
+  node,
+  updateAttributes,
+}: {
+  node: { attrs: { items: PbItem[] } };
+  updateAttributes: (a: Record<string, unknown>) => void;
+}) {
+  const items: PbItem[] = node.attrs.items ?? [];
+
+  function set(i: number, field: keyof PbItem, val: string) {
+    const next = items.map((item, idx) =>
+      idx === i
+        ? { ...item, [field]: field === 'value' ? Math.min(100, Math.max(0, Number(val) || 0)) : val }
+        : item
+    );
+    updateAttributes({ items: next });
+  }
+
+  function add() {
+    updateAttributes({ items: [...items, { label: '', value: 50 }] });
+  }
+
+  function remove(i: number) {
+    updateAttributes({ items: items.filter((_, idx) => idx !== i) });
+  }
+
+  return (
+    <NodeViewWrapper>
+      <div
+        contentEditable={false}
+        style={{
+          border: '1.5px solid #e5dcc8', borderRadius: '10px',
+          padding: '14px 16px', backgroundColor: '#fffdf7', margin: '0.5em 0',
+        }}
+      >
+        {items.map((item, i) => (
+          <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '10px' }}>
+            <input
+              type="text"
+              value={item.label}
+              onChange={(e) => set(i, 'label', e.target.value)}
+              placeholder="항목명"
+              style={{ flex: 2, padding: '5px 8px', fontSize: '13px', border: '1px solid #e5e5e5', borderRadius: '6px', outline: 'none', fontFamily: 'inherit' }}
+            />
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={item.value}
+              onChange={(e) => set(i, 'value', e.target.value)}
+              style={{ width: '58px', padding: '5px 6px', fontSize: '13px', border: '1px solid #e5e5e5', borderRadius: '6px', outline: 'none', fontFamily: 'inherit', textAlign: 'center' }}
+            />
+            <span style={{ fontSize: '12px', color: '#888', flexShrink: 0 }}>%</span>
+            <div style={{ flex: 3, height: '6px', backgroundColor: '#f0e8d0', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${item.value}%`, backgroundColor: '#c8a96e', borderRadius: '3px', transition: 'width 0.2s' }} />
+            </div>
+            <button type="button" onClick={() => remove(i)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ccc', fontSize: '16px', lineHeight: 1, padding: '2px 4px', flexShrink: 0 }}>
+              ×
+            </button>
+          </div>
+        ))}
+        <button type="button" onClick={add}
+          style={{ fontSize: '12px', color: '#c8a96e', background: 'none', border: '1px dashed #c8a96e', borderRadius: '6px', padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}>
+          + 항목 추가
+        </button>
+      </div>
+    </NodeViewWrapper>
+  );
+}
+
+const ProgressBar = Node.create({
+  name: 'progressBar',
+  group: 'block',
+  atom: true,
+
+  addAttributes() {
+    return {
+      items: {
+        default: [{ label: '', value: 50 }],
+        parseHTML: (el) => {
+          try { return JSON.parse(el.getAttribute('data-items') ?? '[]'); } catch { return []; }
+        },
+        renderHTML: (attrs) => ({ 'data-items': JSON.stringify(attrs.items) }),
+      },
+    };
+  },
+
+  parseHTML() {
+    return [{ tag: 'div.progress-block' }];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ['div', mergeAttributes(HTMLAttributes, { class: 'progress-block' })];
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(ProgressBarNodeView);
+  },
+});
+
+// ─────────────────────────────────
+
 interface Props {
   value: string;
   onChange: (html: string) => void;
@@ -72,6 +180,7 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
       Pullquote,
       Callout,
       Vertquote,
+      ProgressBar,
     ],
     content: value,
     editable: !disabled,
@@ -226,6 +335,19 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
           title="유튜브 임베드"
         >
           ▶
+        </ToolBtn>
+        {/* 프로그레스 바 */}
+        <ToolBtn
+          onClick={() =>
+            editor.chain().focus().insertContent({
+              type: 'progressBar',
+              attrs: { items: [{ label: '', value: 50 }] },
+            }).run()
+          }
+          disabled={disabled}
+          title="프로그레스 바 삽입"
+        >
+          <span style={{ fontSize: '12px', fontWeight: 800 }}>%</span>
         </ToolBtn>
         <Divider />
         <ToolBtn onClick={() => editor.chain().focus().undo().run()} title="실행 취소">↩</ToolBtn>

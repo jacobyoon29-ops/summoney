@@ -7,6 +7,7 @@ import ScrollProgressBar from '../../ScrollProgressBar';
 import ArticleActions from './ArticleActions';
 import HighlightObserver from './HighlightObserver';
 import NumberCountup from './NumberCountup';
+import ProgressBarObserver from './ProgressBarObserver';
 
 export const dynamic = 'force-dynamic';
 
@@ -203,6 +204,7 @@ export default async function ArticlePage({
             />
             <HighlightObserver />
             <NumberCountup />
+            <ProgressBarObserver />
           </>
         ) : (
           <div

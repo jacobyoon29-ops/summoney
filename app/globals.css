@@ -46,6 +46,16 @@ body {
 .article-body div[data-youtube-video] { margin: 1.8em 0; }
 .article-body div[data-youtube-video] iframe { border-radius: 12px; width: 100%; aspect-ratio: 16/9; height: auto; }
 
+/* 프로그레스 바 블록 */
+.article-body .progress-block { margin: 0 0 1.65em; }
+.article-body .pb-row { margin-bottom: 14px; }
+.article-body .pb-row:last-child { margin-bottom: 0; }
+.article-body .pb-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+.article-body .pb-label { font-size: 14px; font-weight: 600; color: #333; }
+.article-body .pb-value { font-size: 13px; font-weight: 700; color: #c8a96e; letter-spacing: 0.01em; }
+.article-body .pb-track { height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
+.article-body .pb-fill { height: 100%; background: linear-gradient(90deg, #c8a96e, #e2c98a); border-radius: 4px; }
+
 /* 하이라이트 — 에디터/독자 공용 기본 스타일 */
 .article-body mark { border-radius: 3px; padding: 1px 3px; }
 
