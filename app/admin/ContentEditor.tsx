@@ -1,6 +1,7 @@
 'use client';
 
 import { useEditor, EditorContent } from '@tiptap/react';
+import { Node, mergeAttributes } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Youtube from '@tiptap/extension-youtube';
@@ -9,6 +10,19 @@ import { useRef, useState, type CSSProperties } from 'react';
 
 const HIGHLIGHT_YELLOW = '#FFF176';
 const HIGHLIGHT_SKY = '#B3E5FC';
+
+// 풀쿼트: 핵심 문장을 크게 강조하는 블록 노드
+const Pullquote = Node.create({
+  name: 'pullquote',
+  group: 'block',
+  content: 'inline*',
+  parseHTML() {
+    return [{ tag: 'blockquote.pullquote' }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['blockquote', mergeAttributes(HTMLAttributes, { class: 'pullquote' }), 0];
+  },
+});
 
 interface Props {
   value: string;
@@ -28,6 +42,7 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
       Image.configure({ inline: false, allowBase64: false }),
       Youtube.configure({ width: 640, height: 360, nocookie: true }),
       Highlight.configure({ multicolor: true }),
+      Pullquote,
     ],
     content: value,
     editable: !disabled,
@@ -99,6 +114,21 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
         <ToolBtn onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')} title="목록">≡</ToolBtn>
         <ToolBtn onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive('orderedList')} title="번호 목록">1.</ToolBtn>
         <ToolBtn onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} title="인용">❝</ToolBtn>
+        {/* 풀쿼트 */}
+        <ToolBtn
+          onClick={() => {
+            if (editor.isActive('pullquote')) {
+              editor.chain().focus().setNode('paragraph').run();
+            } else {
+              editor.chain().focus().setNode('pullquote').run();
+            }
+          }}
+          active={editor.isActive('pullquote')}
+          disabled={disabled}
+          title="풀쿼트 (핵심 문장 강조)"
+        >
+          <span style={{ fontStyle: 'italic', fontWeight: 800, color: editor.isActive('pullquote') ? '#7c3aed' : '#c8a96e', fontSize: '15px' }}>❞</span>
+        </ToolBtn>
         <Divider />
         {/* 하이라이트 */}
         <ToolBtn
@@ -255,17 +285,18 @@ function Divider() {
 
 const editorStyles = `
   .tiptap { outline: none; }
-  .tiptap p { margin: 0 0 1em; line-height: 1.8; color: #222; font-size: 16px; }
-  .tiptap h2 { font-size: 22px; font-weight: 800; margin: 1.4em 0 0.4em; color: #111; }
-  .tiptap h3 { font-size: 18px; font-weight: 700; margin: 1.2em 0 0.4em; color: #111; }
+  .tiptap p { margin: 0 0 1.5em; line-height: 1.8; color: #222; font-size: 16px; }
+  .tiptap h2 { font-size: 22px; font-weight: 800; margin: 1.4em 0 0.6em; color: #111; }
+  .tiptap h3 { font-size: 18px; font-weight: 700; margin: 1.2em 0 0.5em; color: #111; }
   .tiptap strong { font-weight: 700; }
   .tiptap em { font-style: italic; }
   .tiptap s { text-decoration: line-through; color: #888; }
-  .tiptap ul, .tiptap ol { padding-left: 1.4em; margin: 0 0 1em; }
-  .tiptap li { margin-bottom: 0.3em; line-height: 1.7; }
-  .tiptap blockquote { border-left: 3px solid #FF6B6B; margin: 0 0 1em; padding: 6px 16px; color: #555; background: #fff5f5; border-radius: 0 8px 8px 0; }
-  .tiptap img { max-width: 100%; height: auto; border-radius: 10px; margin: 1em 0; display: block; }
-  .tiptap div[data-youtube-video] { margin: 1em 0; }
+  .tiptap ul, .tiptap ol { padding-left: 1.4em; margin: 0 0 1.5em; }
+  .tiptap li { margin-bottom: 0.45em; line-height: 1.7; }
+  .tiptap blockquote { border-left: 3px solid #FF6B6B; margin: 0 0 1.5em; padding: 6px 16px; color: #555; background: #fff5f5; border-radius: 0 8px 8px 0; }
+  .tiptap blockquote.pullquote { border-left: 4px solid #c8a96e; background: #fffdf7; border-radius: 0 10px 10px 0; padding: 14px 24px; margin: 0 0 1.5em; color: #111; font-size: 20px; font-weight: 700; line-height: 1.55; letter-spacing: -0.01em; font-style: normal; }
+  .tiptap img { max-width: 100%; height: auto; border-radius: 10px; margin: 1.5em 0; display: block; }
+  .tiptap div[data-youtube-video] { margin: 1.5em 0; }
   .tiptap div[data-youtube-video] iframe { border-radius: 10px; max-width: 100%; }
   .tiptap p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: #bbb; pointer-events: none; float: left; height: 0; }
   .tiptap mark { border-radius: 3px; padding: 1px 2px; }
