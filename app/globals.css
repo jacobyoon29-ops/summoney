@@ -40,3 +40,31 @@ body {
 .article-body iframe { max-width: 100%; border-radius: 12px; margin: 1.2em 0; }
 .article-body div[data-youtube-video] { margin: 1.2em 0; }
 .article-body div[data-youtube-video] iframe { border-radius: 12px; width: 100%; aspect-ratio: 16/9; height: auto; }
+
+/* 하이라이트 — 에디터/독자 공용 기본 스타일 */
+.article-body mark { border-radius: 3px; padding: 1px 3px; }
+
+/* 스크롤 진입 하이라이트 애니메이션 */
+@keyframes hl-yellow-in {
+  0%   { background-color: transparent; }
+  30%  { background-color: #FFF176; }
+  100% { background-color: #FFF176; }
+}
+@keyframes hl-sky-in {
+  0%   { background-color: transparent; }
+  30%  { background-color: #B3E5FC; }
+  100% { background-color: #B3E5FC; }
+}
+
+.article-body mark[data-color="#FFF176"].hl-animate {
+  animation: hl-yellow-in 0.7s ease forwards;
+}
+.article-body mark[data-color="#B3E5FC"].hl-animate {
+  animation: hl-sky-in 0.7s ease forwards;
+}
+
+/* 애니메이션 전 초기 상태: 투명하게 숨김 */
+.article-body mark[data-color="#FFF176"]:not(.hl-animate),
+.article-body mark[data-color="#B3E5FC"]:not(.hl-animate) {
+  background-color: transparent;
+}

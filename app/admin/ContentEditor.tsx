@@ -4,7 +4,11 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Youtube from '@tiptap/extension-youtube';
+import Highlight from '@tiptap/extension-highlight';
 import { useRef, useState, type CSSProperties } from 'react';
+
+const HIGHLIGHT_YELLOW = '#FFF176';
+const HIGHLIGHT_SKY = '#B3E5FC';
 
 interface Props {
   value: string;
@@ -23,6 +27,7 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
       StarterKit,
       Image.configure({ inline: false, allowBase64: false }),
       Youtube.configure({ width: 640, height: 360, nocookie: true }),
+      Highlight.configure({ multicolor: true }),
     ],
     content: value,
     editable: !disabled,
@@ -94,6 +99,24 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
         <ToolBtn onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')} title="목록">≡</ToolBtn>
         <ToolBtn onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive('orderedList')} title="번호 목록">1.</ToolBtn>
         <ToolBtn onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} title="인용">❝</ToolBtn>
+        <Divider />
+        {/* 하이라이트 */}
+        <ToolBtn
+          onClick={() => editor.chain().focus().toggleHighlight({ color: HIGHLIGHT_YELLOW }).run()}
+          active={editor.isActive('highlight', { color: HIGHLIGHT_YELLOW })}
+          disabled={disabled}
+          title="노랑 하이라이트"
+        >
+          <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '3px', backgroundColor: HIGHLIGHT_YELLOW, border: '1px solid #e0c000', verticalAlign: 'middle' }} />
+        </ToolBtn>
+        <ToolBtn
+          onClick={() => editor.chain().focus().toggleHighlight({ color: HIGHLIGHT_SKY }).run()}
+          active={editor.isActive('highlight', { color: HIGHLIGHT_SKY })}
+          disabled={disabled}
+          title="하늘색 하이라이트"
+        >
+          <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '3px', backgroundColor: HIGHLIGHT_SKY, border: '1px solid #5ba8d0', verticalAlign: 'middle' }} />
+        </ToolBtn>
         <Divider />
         {/* 이미지/GIF 삽입 */}
         <ToolBtn
@@ -245,4 +268,5 @@ const editorStyles = `
   .tiptap div[data-youtube-video] { margin: 1em 0; }
   .tiptap div[data-youtube-video] iframe { border-radius: 10px; max-width: 100%; }
   .tiptap p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: #bbb; pointer-events: none; float: left; height: 0; }
+  .tiptap mark { border-radius: 3px; padding: 1px 2px; }
 `;

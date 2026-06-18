@@ -5,6 +5,7 @@ import { getAdminClient } from '@/lib/supabaseAdmin';
 import type { Article } from '@/lib/supabase';
 import ScrollProgressBar from '../../ScrollProgressBar';
 import ArticleActions from './ArticleActions';
+import HighlightObserver from './HighlightObserver';
 
 export const dynamic = 'force-dynamic';
 
@@ -193,11 +194,14 @@ export default async function ArticlePage({
 
         {/* 본문 — TipTap HTML 또는 레거시 plain text 모두 지원 */}
         {isHtml(article.content) ? (
-          <div
-            className="article-body"
-            dangerouslySetInnerHTML={{ __html: article.content }}
-            style={{ paddingBottom: '64px' }}
-          />
+          <>
+            <div
+              className="article-body"
+              dangerouslySetInnerHTML={{ __html: article.content }}
+              style={{ paddingBottom: '64px' }}
+            />
+            <HighlightObserver />
+          </>
         ) : (
           <div
             style={{
