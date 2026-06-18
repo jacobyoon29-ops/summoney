@@ -226,14 +226,15 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      {/* ── 툴바 1행: 서식 ── */}
+      {/* ── 툴바 1줄 ── */}
       <div style={{
-        display: 'flex', alignItems: 'center', gap: '3px',
-        padding: '6px 10px',
+        display: 'flex', alignItems: 'center', gap: '2px',
+        padding: '5px 8px',
         background: '#f5f5f5',
         border: '1px solid #ddd',
-        borderBottom: '1px solid #ccc',
+        borderBottom: 'none',
         borderRadius: '10px 10px 0 0',
+        overflowX: 'auto',
       }}>
         <TB onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="굵게">B</TB>
         <TB onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive('italic')} title="기울임"><i>I</i></TB>
@@ -245,75 +246,33 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
         <TB onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')} title="불릿 목록">•</TB>
         <TB onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive('orderedList')} title="번호 목록">1.</TB>
         <Sep />
-        <TB onClick={() => editor.chain().focus().undo().run()} title="실행 취소">↩</TB>
-        <TB onClick={() => editor.chain().focus().redo().run()} title="다시 실행">↪</TB>
-      </div>
-
-      {/* ── 툴바 2행: 블록·미디어 ── */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '3px',
-        padding: '6px 10px',
-        background: '#eeeeee',
-        border: '1px solid #ddd',
-        borderTop: 'none',
-        borderBottom: 'none',
-      }}>
-        {/* 풀쿼트 */}
-        <TB
-          onClick={() => editor.isActive('pullquote') ? editor.chain().focus().setNode('paragraph').run() : editor.chain().focus().setNode('pullquote').run()}
-          active={editor.isActive('pullquote')}
-          title="풀쿼트"
-        >
-          <span style={{ fontStyle: 'italic', fontWeight: 800, fontSize: '14px', color: editor.isActive('pullquote') ? '#7c3aed' : '#c8a96e' }}>❝</span>
+        <TB onClick={() => editor.isActive('pullquote') ? editor.chain().focus().setNode('paragraph').run() : editor.chain().focus().setNode('pullquote').run()} active={editor.isActive('pullquote')} title="풀쿼트">
+          <span style={{ fontStyle: 'italic', fontWeight: 800, color: editor.isActive('pullquote') ? '#7c3aed' : '#c8a96e' }}>❝</span>
         </TB>
-        {/* 닫는따옴표(일반 인용) */}
-        <TB onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} title="인용구">
-          <span style={{ fontSize: '14px' }}>❞</span>
+        <TB onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} title="인용구">❞</TB>
+        <TB onClick={() => editor.isActive('callout') ? editor.chain().focus().lift('callout').run() : editor.chain().focus().wrapIn('callout').run()} active={editor.isActive('callout')} title="박스 강조">
+          <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '11px', height: '11px', fontSize: '8px', fontWeight: 900, border: `2px solid ${editor.isActive('callout') ? '#7c3aed' : '#6b7280'}`, borderRadius: '2px', color: editor.isActive('callout') ? '#7c3aed' : '#6b7280' }}>!</span>
         </TB>
-        {/* 박스 강조 */}
-        <TB
-          onClick={() => editor.isActive('callout') ? editor.chain().focus().lift('callout').run() : editor.chain().focus().wrapIn('callout').run()}
-          active={editor.isActive('callout')}
-          title="박스 강조"
-        >
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: '13px', height: '13px', fontSize: '9px', fontWeight: 900,
-            border: `2px solid ${editor.isActive('callout') ? '#7c3aed' : '#6b7280'}`,
-            borderRadius: '3px', color: editor.isActive('callout') ? '#7c3aed' : '#6b7280',
-          }}>!</span>
-        </TB>
-        {/* 버티컬 인용 */}
-        <TB
-          onClick={() => editor.isActive('vertquote') ? editor.chain().focus().setNode('paragraph').run() : editor.chain().focus().setNode('vertquote').run()}
-          active={editor.isActive('vertquote')}
-          title="버티컬 인용"
-        >
+        <TB onClick={() => editor.isActive('vertquote') ? editor.chain().focus().setNode('paragraph').run() : editor.chain().focus().setNode('vertquote').run()} active={editor.isActive('vertquote')} title="버티컬 인용">
           <span style={{ display: 'inline-flex', gap: '2px', alignItems: 'center' }}>
-            <span style={{ width: '3px', height: '12px', borderRadius: '2px', background: editor.isActive('vertquote') ? '#7c3aed' : '#c8a96e', display: 'inline-block' }} />
-            <span style={{ fontSize: '10px', fontStyle: 'italic', color: editor.isActive('vertquote') ? '#7c3aed' : '#888' }}>인용</span>
+            <span style={{ width: '2px', height: '10px', borderRadius: '1px', background: editor.isActive('vertquote') ? '#7c3aed' : '#c8a96e', display: 'inline-block' }} />
+            <span style={{ fontSize: '9px', fontStyle: 'italic', color: editor.isActive('vertquote') ? '#7c3aed' : '#888' }}>인용</span>
           </span>
         </TB>
         <Sep />
-        {/* 노랑 하이라이트 */}
         <TB onClick={() => editor.chain().focus().toggleHighlight({ color: HIGHLIGHT_YELLOW }).run()} active={editor.isActive('highlight', { color: HIGHLIGHT_YELLOW })} title="노랑 하이라이트">
-          <span style={{ display: 'inline-block', width: '14px', height: '14px', borderRadius: '3px', background: HIGHLIGHT_YELLOW, border: '1px solid #c8a000' }} />
+          <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '2px', background: HIGHLIGHT_YELLOW, border: '1px solid #c8a000' }} />
         </TB>
-        {/* 하늘 하이라이트 */}
         <TB onClick={() => editor.chain().focus().toggleHighlight({ color: HIGHLIGHT_SKY }).run()} active={editor.isActive('highlight', { color: HIGHLIGHT_SKY })} title="하늘 하이라이트">
-          <span style={{ display: 'inline-block', width: '14px', height: '14px', borderRadius: '3px', background: HIGHLIGHT_SKY, border: '1px solid #4a9cc0' }} />
+          <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '2px', background: HIGHLIGHT_SKY, border: '1px solid #4a9cc0' }} />
         </TB>
         <Sep />
-        {/* 이미지 */}
-        <TB onClick={() => fileInputRef.current?.click()} disabled={uploading || disabled} title="이미지 삽입">
-          {uploading ? '⏳' : '🖼'}
-        </TB>
-        {/* 유튜브 */}
+        <TB onClick={() => fileInputRef.current?.click()} disabled={uploading || disabled} title="이미지 삽입">{uploading ? '⏳' : '🖼'}</TB>
         <TB onClick={() => setYoutubePrompt(v => !v)} active={youtubePrompt} title="유튜브 임베드">▶</TB>
-        {/* 프로그레스 바 */}
-        <TB onClick={() => editor.chain().focus().insertContent({ type: 'progressBar', attrs: { items: [{ label: '', value: 50 }] } }).run()} title="프로그레스 바">
-          <span style={{ fontSize: '11px', fontWeight: 800 }}>%</span>
-        </TB>
+        <TB onClick={() => editor.chain().focus().insertContent({ type: 'progressBar', attrs: { items: [{ label: '', value: 50 }] } }).run()} title="프로그레스 바">%</TB>
+        <Sep />
+        <TB onClick={() => editor.chain().focus().undo().run()} title="실행 취소">↩</TB>
+        <TB onClick={() => editor.chain().focus().redo().run()} title="다시 실행">↪</TB>
       </div>
 
       {/* 유튜브 URL 입력창 */}
@@ -407,8 +366,8 @@ function TB({
       disabled={disabled}
       title={title}
       style={{
-        padding: '3px 6px',
-        fontSize: '12px',
+        padding: '2px 5px',
+        fontSize: '11px',
         fontWeight: 600,
         border: `1px solid ${active ? '#7c3aed' : '#d0d0d0'}`,
         borderRadius: '4px',
