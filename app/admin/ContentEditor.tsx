@@ -229,16 +229,16 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-      {/* 툴바 */}
+      {/* 툴바 1줄: 텍스트 서식 */}
       <div
         style={{
           display: 'flex',
           flexWrap: 'wrap',
           gap: '4px',
-          padding: '8px 10px',
+          padding: '6px 10px',
           backgroundColor: '#f8f8f8',
           border: '1px solid #e5e5e5',
-          borderBottom: 'none',
+          borderBottom: '1px solid #ececec',
           borderRadius: '10px 10px 0 0',
         }}
       >
@@ -251,6 +251,42 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
         <Divider />
         <ToolBtn onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')} title="목록">≡</ToolBtn>
         <ToolBtn onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive('orderedList')} title="번호 목록">1.</ToolBtn>
+        <Divider />
+        {/* 하이라이트 */}
+        <ToolBtn
+          onClick={() => editor.chain().focus().toggleHighlight({ color: HIGHLIGHT_YELLOW }).run()}
+          active={editor.isActive('highlight', { color: HIGHLIGHT_YELLOW })}
+          disabled={disabled}
+          title="노랑 하이라이트"
+        >
+          <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '3px', backgroundColor: HIGHLIGHT_YELLOW, border: '1px solid #e0c000', verticalAlign: 'middle' }} />
+        </ToolBtn>
+        <ToolBtn
+          onClick={() => editor.chain().focus().toggleHighlight({ color: HIGHLIGHT_SKY }).run()}
+          active={editor.isActive('highlight', { color: HIGHLIGHT_SKY })}
+          disabled={disabled}
+          title="하늘색 하이라이트"
+        >
+          <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '3px', backgroundColor: HIGHLIGHT_SKY, border: '1px solid #5ba8d0', verticalAlign: 'middle' }} />
+        </ToolBtn>
+        <Divider />
+        <ToolBtn onClick={() => editor.chain().focus().undo().run()} title="실행 취소">↩</ToolBtn>
+        <ToolBtn onClick={() => editor.chain().focus().redo().run()} title="다시 실행">↪</ToolBtn>
+      </div>
+
+      {/* 툴바 2줄: 블록·미디어 */}
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '4px',
+          padding: '6px 10px',
+          backgroundColor: '#f8f8f8',
+          border: '1px solid #e5e5e5',
+          borderTop: 'none',
+          borderBottom: 'none',
+        }}
+      >
         <ToolBtn onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} title="인용">❝</ToolBtn>
         {/* 풀쿼트 */}
         <ToolBtn
@@ -301,24 +337,6 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
           </span>
         </ToolBtn>
         <Divider />
-        {/* 하이라이트 */}
-        <ToolBtn
-          onClick={() => editor.chain().focus().toggleHighlight({ color: HIGHLIGHT_YELLOW }).run()}
-          active={editor.isActive('highlight', { color: HIGHLIGHT_YELLOW })}
-          disabled={disabled}
-          title="노랑 하이라이트"
-        >
-          <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '3px', backgroundColor: HIGHLIGHT_YELLOW, border: '1px solid #e0c000', verticalAlign: 'middle' }} />
-        </ToolBtn>
-        <ToolBtn
-          onClick={() => editor.chain().focus().toggleHighlight({ color: HIGHLIGHT_SKY }).run()}
-          active={editor.isActive('highlight', { color: HIGHLIGHT_SKY })}
-          disabled={disabled}
-          title="하늘색 하이라이트"
-        >
-          <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '3px', backgroundColor: HIGHLIGHT_SKY, border: '1px solid #5ba8d0', verticalAlign: 'middle' }} />
-        </ToolBtn>
-        <Divider />
         {/* 이미지/GIF 삽입 */}
         <ToolBtn
           onClick={() => fileInputRef.current?.click()}
@@ -349,9 +367,6 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
         >
           <span style={{ fontSize: '12px', fontWeight: 800 }}>%</span>
         </ToolBtn>
-        <Divider />
-        <ToolBtn onClick={() => editor.chain().focus().undo().run()} title="실행 취소">↩</ToolBtn>
-        <ToolBtn onClick={() => editor.chain().focus().redo().run()} title="다시 실행">↪</ToolBtn>
       </div>
 
       {/* 유튜브 URL 입력창 */}
