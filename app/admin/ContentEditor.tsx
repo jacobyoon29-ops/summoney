@@ -24,6 +24,33 @@ const Pullquote = Node.create({
   },
 });
 
+// 박스 강조 블록: 연한 배경 + 테두리, 내부에 블록 요소 허용
+const Callout = Node.create({
+  name: 'callout',
+  group: 'block',
+  content: 'block+',
+  defining: true,
+  parseHTML() {
+    return [{ tag: 'div.callout' }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['div', mergeAttributes(HTMLAttributes, { class: 'callout' }), 0];
+  },
+});
+
+// 버티컬 라인 인용구: 골드 왼쪽 세로선 + 회색 텍스트
+const Vertquote = Node.create({
+  name: 'vertquote',
+  group: 'block',
+  content: 'inline*',
+  parseHTML() {
+    return [{ tag: 'blockquote.vertquote' }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['blockquote', mergeAttributes(HTMLAttributes, { class: 'vertquote' }), 0];
+  },
+});
+
 interface Props {
   value: string;
   onChange: (html: string) => void;
@@ -43,6 +70,8 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
       Youtube.configure({ width: 640, height: 360, nocookie: true }),
       Highlight.configure({ multicolor: true }),
       Pullquote,
+      Callout,
+      Vertquote,
     ],
     content: value,
     editable: !disabled,
@@ -128,6 +157,39 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
           title="풀쿼트 (핵심 문장 강조)"
         >
           <span style={{ fontStyle: 'italic', fontWeight: 800, color: editor.isActive('pullquote') ? '#7c3aed' : '#c8a96e', fontSize: '15px' }}>❞</span>
+        </ToolBtn>
+        {/* 박스 강조 블록 */}
+        <ToolBtn
+          onClick={() => {
+            if (editor.isActive('callout')) {
+              editor.chain().focus().lift('callout').run();
+            } else {
+              editor.chain().focus().wrapIn('callout').run();
+            }
+          }}
+          active={editor.isActive('callout')}
+          disabled={disabled}
+          title="박스 강조 블록"
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', border: `2px solid ${editor.isActive('callout') ? '#7c3aed' : '#6b7280'}`, borderRadius: '3px', fontSize: '9px', fontWeight: 900, color: editor.isActive('callout') ? '#7c3aed' : '#6b7280' }}>!</span>
+        </ToolBtn>
+        {/* 버티컬 라인 인용구 */}
+        <ToolBtn
+          onClick={() => {
+            if (editor.isActive('vertquote')) {
+              editor.chain().focus().setNode('paragraph').run();
+            } else {
+              editor.chain().focus().setNode('vertquote').run();
+            }
+          }}
+          active={editor.isActive('vertquote')}
+          disabled={disabled}
+          title="버티컬 라인 인용구"
+        >
+          <span style={{ display: 'inline-flex', gap: '3px', alignItems: 'center' }}>
+            <span style={{ width: '3px', height: '13px', borderRadius: '2px', backgroundColor: editor.isActive('vertquote') ? '#7c3aed' : '#c8a96e', display: 'inline-block' }} />
+            <span style={{ fontSize: '11px', color: editor.isActive('vertquote') ? '#7c3aed' : '#888', fontStyle: 'italic' }}>인용</span>
+          </span>
         </ToolBtn>
         <Divider />
         {/* 하이라이트 */}
@@ -300,4 +362,8 @@ const editorStyles = `
   .tiptap div[data-youtube-video] iframe { border-radius: 10px; max-width: 100%; }
   .tiptap p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: #bbb; pointer-events: none; float: left; height: 0; }
   .tiptap mark { border-radius: 3px; padding: 1px 2px; }
+  .tiptap div.callout { background: #f0f7ff; border: 1.5px solid #bfdbfe; border-radius: 10px; padding: 14px 18px; margin: 0 0 1.5em; }
+  .tiptap div.callout > * { margin-bottom: 0.5em; }
+  .tiptap div.callout > *:last-child { margin-bottom: 0; }
+  .tiptap blockquote.vertquote { border-left: 4px solid #c8a96e; background: transparent; border-radius: 0; padding: 4px 16px; margin: 0 0 1.5em; color: #666; font-size: 15px; font-weight: 400; font-style: italic; line-height: 1.7; }
 `;

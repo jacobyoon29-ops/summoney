@@ -37,6 +37,10 @@ body {
 .article-body li  { margin-bottom: 0.5em; }
 .article-body blockquote { border-left: 3px solid #FF6B6B; margin: 0 0 1.65em; padding: 8px 18px; color: #555; background: #fff5f5; border-radius: 0 8px 8px 0; }
 .article-body blockquote.pullquote { border-left: 4px solid #c8a96e; background: #fffdf7; border-radius: 0 12px 12px 0; padding: 16px 28px; margin: 0 0 1.65em; color: #111; font-size: 22px; font-weight: 700; line-height: 1.55; letter-spacing: -0.02em; font-style: normal; }
+.article-body blockquote.vertquote { border-left: 4px solid #c8a96e; background: transparent; border-radius: 0; padding: 4px 20px; margin: 0 0 1.65em; color: #666; font-size: 16px; font-style: italic; line-height: 1.7; }
+.article-body div.callout { background: #f0f7ff; border: 1.5px solid #bfdbfe; border-radius: 12px; padding: 16px 22px; margin: 0 0 1.65em; }
+.article-body div.callout > * { margin-bottom: 0.5em; }
+.article-body div.callout > *:last-child { margin-bottom: 0; }
 .article-body img { max-width: 100%; height: auto; border-radius: 12px; margin: 1.8em 0; display: block; }
 .article-body iframe { max-width: 100%; border-radius: 12px; margin: 1.8em 0; }
 .article-body div[data-youtube-video] { margin: 1.8em 0; }
