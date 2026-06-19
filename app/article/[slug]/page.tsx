@@ -5,6 +5,7 @@ import { getAdminClient } from '@/lib/supabaseAdmin';
 import type { Article } from '@/lib/supabase';
 import ScrollProgressBar from '../../ScrollProgressBar';
 import ArticleActions from './ArticleActions';
+import CopyLinkButton from './CopyLinkButton';
 import HighlightObserver from './HighlightObserver';
 import NumberCountup from './NumberCountup';
 import ProgressBarObserver from './ProgressBarObserver';
@@ -29,6 +30,11 @@ const CATEGORY_TEXT: Record<string, string> = {
 
 function isHtml(content: string): boolean {
   return /<[a-z][\s\S]*>/i.test(content);
+}
+
+function calcReadingTime(content: string): number {
+  const text = content.replace(/<[^>]*>/g, '').replace(/\s+/g, '');
+  return Math.max(1, Math.ceil(text.length / 200));
 }
 
 function decodeSlug(slug: string): string {
@@ -99,6 +105,7 @@ export default async function ArticlePage({
 
   const related = await getRelatedArticles(article.related_ids ?? []);
   const date = (article.published_at ?? article.created_at).slice(0, 10).replace(/-/g, '.');
+  const readingTime = calcReadingTime(article.content);
 
   return (
     <div
@@ -177,7 +184,12 @@ export default async function ArticlePage({
             {article.summary}
           </p>
         )}
-        <p style={{ color: '#bbb', fontSize: '13px', marginBottom: '16px' }}>{date}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
+          <p style={{ color: '#bbb', fontSize: '13px', margin: 0 }}>{date}</p>
+          <span style={{ color: '#ddd', fontSize: '13px' }}>·</span>
+          <p style={{ color: '#bbb', fontSize: '13px', margin: 0 }}>약 {readingTime}분 읽기</p>
+          <CopyLinkButton />
+        </div>
 
         <ArticleActions
           articleId={article.id}
