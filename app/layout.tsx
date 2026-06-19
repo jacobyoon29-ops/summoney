@@ -31,7 +31,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <Script
-          src="https://t1.kakaocdn.net/kakaojs/latest/kakao.min.js"
+          src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"
+          integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4"
+          crossOrigin="anonymous"
           strategy="afterInteractive"
         />
       </body>
