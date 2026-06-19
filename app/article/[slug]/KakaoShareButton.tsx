@@ -36,17 +36,8 @@ export default function KakaoShareButton({ title, description, imageUrl }: { tit
     if (!window.Kakao?.isInitialized()) {
       window.Kakao?.init('c06b27a2320bba7ab68559a89822f945');
     }
-    window.Kakao.Share.sendDefault({
-      objectType: 'feed',
-      content: {
-        title,
-        description: description || '',
-        imageUrl: imageUrl || 'https://summoney.vercel.app/og-image.png',
-        link: {
-          mobileWebUrl: window.location.href,
-          webUrl: window.location.href,
-        },
-      },
+    window.Kakao.Share.sendScrap({
+      requestUrl: window.location.href,
     });
   };
 
