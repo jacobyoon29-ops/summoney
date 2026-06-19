@@ -265,23 +265,28 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
               {isEdit ? '글 수정' : '새 글 작성'}
             </h1>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingTop: '32px' }}>
-            {autoSavedAt && (
-              <span style={{ fontSize: '12px', color: '#aaa', fontWeight: 500 }}>자동저장됨 {autoSavedAt}</span>
-            )}
-            <button
-              type="button"
-              onClick={() => setShowPreview((v) => !v)}
-              style={{ padding: '8px 16px', fontSize: '13px', fontWeight: 700, color: showPreview ? '#fff' : '#c8a96e', backgroundColor: showPreview ? '#c8a96e' : '#fff8f0', border: '1.5px solid #c8a96e', borderRadius: '8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
-            >
-              {showPreview ? '미리보기 닫기' : '👁 미리보기'}
-            </button>
-          </div>
+          <div />
         </div>
 
         <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
         <div style={{ flex: '0 0 680px', minWidth: 0 }}>
-        <div style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f0f0f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f0f0f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', overflow: 'hidden' }}>
+
+          {/* 자동저장 상태 바 */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 20px', backgroundColor: '#fafafa', borderBottom: '1px solid #f0f0f0', gap: '12px' }}>
+            <span style={{ fontSize: '12px', color: autoSavedAt ? '#aaa' : '#ddd', fontWeight: 500 }}>
+              {autoSavedAt ? `자동저장됨 ${autoSavedAt}` : '아직 자동저장 안 됨'}
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowPreview((v) => !v)}
+              style={{ padding: '5px 14px', fontSize: '12px', fontWeight: 700, color: showPreview ? '#fff' : '#c8a96e', backgroundColor: showPreview ? '#c8a96e' : '#fff8f0', border: '1.5px solid #c8a96e', borderRadius: '7px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            >
+              {showPreview ? '미리보기 닫기 ✕' : '👁 미리보기'}
+            </button>
+          </div>
+
+          <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
           {/* ① 제목 */}
           <div style={fieldStyle}>
@@ -554,7 +559,8 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
               {pending === 'delete' ? '삭제 중...' : '글 삭제'}
             </button>
           )}
-        </div>
+          </div>{/* end padding div */}
+        </div>{/* end white card */}
         </div>{/* end form column */}
 
         {/* 미리보기 패널 */}
