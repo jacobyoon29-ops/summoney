@@ -1,58 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-
-declare global {
-  interface Window {
-    Kakao?: {
-      isInitialized: () => boolean;
-      init: (key: string) => void;
-      Share: {
-        sendDefault: (options: Record<string, unknown>) => void;
-        sendScrap: (options: Record<string, unknown>) => void;
-      };
-    };
-  }
-}
-
-const APP_KEY = 'c06b27a2320bba7ab68559a89822f945';
-
 export default function KakaoShareButton() {
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    // SDK가 이미 로드됐을 수도 있고, 아직 로드 중일 수도 있어서 폴링
-    let tries = 0;
-    const id = setInterval(() => {
-      if (window.Kakao) {
-        if (!window.Kakao.isInitialized()) {
-          window.Kakao.init(APP_KEY);
-        }
-        setReady(true);
-        clearInterval(id);
-      }
-      if (++tries > 20) clearInterval(id); // 10초 후 포기
-    }, 500);
-    return () => clearInterval(id);
-  }, []);
-
   function handleShare() {
     const url = window.location.href;
-
-    if (ready && window.Kakao?.Share) {
-      try {
-        window.Kakao.Share.sendScrap({ requestUrl: url });
-        return;
-      } catch (e) {
-        console.warn('[Kakao] sendScrap 실패, fallback 사용:', e);
-      }
-    }
-
-    // fallback
     window.open(
-      `https://sharer.kakao.com/talk/friends/picker/easylink?app_key=${APP_KEY}&shimmed_url=${encodeURIComponent(url)}`,
-      '_blank',
-      'width=500,height=600'
+      `https://story.kakao.com/share?url=${encodeURIComponent(url)}`,
+      '_blank'
     );
   }
 
