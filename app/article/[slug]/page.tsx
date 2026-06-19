@@ -191,7 +191,11 @@ export default async function ArticlePage({
           </p>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <CopyLinkButton />
-            <KakaoShareButton />
+            <KakaoShareButton
+              title={article.title}
+              description={article.summary ?? ''}
+              imageUrl={article.cover_image ?? ''}
+            />
           </div>
         </div>
 

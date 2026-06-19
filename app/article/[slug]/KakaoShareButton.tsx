@@ -1,6 +1,5 @@
 'use client';
-
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 declare global {
   interface Window {
@@ -14,55 +13,52 @@ declare global {
   }
 }
 
-const APP_KEY = 'c06b27a2320bba7ab68559a89822f945';
-
-export default function KakaoShareButton() {
-  const [ready, setReady] = useState(false);
+export default function KakaoShareButton({ title, description, imageUrl }: { title: string; description?: string; imageUrl?: string }) {
+  const [kakaoReady, setKakaoReady] = useState(false);
 
   useEffect(() => {
-    let tries = 0;
-    const id = setInterval(() => {
-      if (window.Kakao) {
-        if (!window.Kakao.isInitialized()) {
-          window.Kakao.init(APP_KEY);
-        }
-        setReady(true);
-        clearInterval(id);
+    // 이미 로드된 경우
+    if (window.Kakao) {
+      if (!window.Kakao.isInitialized()) {
+        window.Kakao.init('c06b27a2320bba7ab68559a89822f945');
       }
-      if (++tries > 20) clearInterval(id);
-    }, 500);
-    return () => clearInterval(id);
-  }, []);
-
-  function handleShare() {
-    const url = window.location.href;
-
-    if (ready && window.Kakao?.Share) {
-      try {
-        window.Kakao.Share.sendDefault({
-          objectType: 'feed',
-          content: {
-            title: document.title,
-            description: '',
-            imageUrl: '',
-            link: {
-              mobileWebUrl: url,
-              webUrl: url,
-            },
-          },
-        });
-        return;
-      } catch (e) {
-        console.warn('[Kakao] sendDefault 실패, fallback 사용:', e);
-      }
+      setKakaoReady(true);
+      return;
     }
 
-    // fallback
-    window.open(
-      `https://story.kakao.com/share?url=${encodeURIComponent(url)}`,
-      '_blank'
-    );
-  }
+    const script = document.createElement('script');
+    script.src = 'https://t1.kakaocdn.net/kakaojs/latest/kakao.min.js';
+    script.async = true;
+    script.onload = () => {
+      if (window.Kakao && !window.Kakao.isInitialized()) {
+        window.Kakao.init('c06b27a2320bba7ab68559a89822f945');
+      }
+      setKakaoReady(true);
+    };
+    document.head.appendChild(script);
+    return () => {
+      if (document.head.contains(script)) document.head.removeChild(script);
+    };
+  }, []);
+
+  const handleShare = () => {
+    if (!kakaoReady || !window.Kakao?.isInitialized()) {
+      alert('카카오 SDK 로딩 중입니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+    window.Kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title,
+        description: description ?? '',
+        imageUrl: imageUrl ?? '',
+        link: {
+          mobileWebUrl: window.location.href,
+          webUrl: window.location.href,
+        },
+      },
+    });
+  };
 
   return (
     <button
@@ -74,18 +70,16 @@ export default function KakaoShareButton() {
         backgroundColor: '#FEE500',
         border: 'none',
         borderRadius: '20px',
-        padding: '4px 12px',
-        fontSize: '13px',
-        color: '#000',
-        fontWeight: 700,
+        padding: '6px 14px',
         cursor: 'pointer',
+        fontWeight: 'bold',
+        fontSize: '14px',
         fontFamily: 'inherit',
-        whiteSpace: 'nowrap',
       }}
     >
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <path d="M10 1C5.03 1 1 4.358 1 8.5c0 2.674 1.676 5.025 4.2 6.394L4.2 18l3.8-2.1c.645.09 1.31.137 1.998.137C14.97 16 19 12.642 19 8.5S14.97 1 10 1z" fill="#1E1E1E"/>
-        <text x="10" y="9" textAnchor="middle" dominantBaseline="central" fill="#FEE500" fontSize="4" fontWeight="900" fontFamily="Arial, sans-serif">TALK</text>
+        <text x="10" y="9" textAnchor="middle" dominantBaseline="middle" fill="#FEE500" fontSize="4" fontWeight="900" fontFamily="Arial, sans-serif">TALK</text>
       </svg>
       카카오톡 공유
     </button>
