@@ -143,19 +143,40 @@ export default async function AdminListPage() {
                     </span>
                     <span style={{ fontSize: '12px', color: '#bbb' }}>{formatDate(a.created_at)}</span>
                   </div>
-                  <p
-                    style={{
-                      fontSize: '15px',
-                      fontWeight: 700,
-                      color: '#111',
-                      margin: 0,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {a.title}
-                  </p>
+                  {a.is_published ? (
+                    <Link
+                      href={`/article/${a.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        fontSize: '15px',
+                        fontWeight: 700,
+                        color: '#111',
+                        margin: 0,
+                        display: 'block',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        textDecoration: 'none',
+                      }}
+                    >
+                      {a.title} ↗
+                    </Link>
+                  ) : (
+                    <p
+                      style={{
+                        fontSize: '15px',
+                        fontWeight: 700,
+                        color: '#111',
+                        margin: 0,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {a.title}
+                    </p>
+                  )}
                 </div>
 
                 {/* 액션 */}
