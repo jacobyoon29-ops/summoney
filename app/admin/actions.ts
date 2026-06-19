@@ -1,7 +1,7 @@
 'use server';
 
 import Anthropic from '@anthropic-ai/sdk';
-import { CATEGORIES, COVER_BUCKET, type Article } from '@/lib/supabase';
+import { CATEGORIES, COVER_BUCKET, DEFAULT_SETTINGS, type Article, type SiteSettings } from '@/lib/supabase';
 import { getAdminClient } from '@/lib/supabaseAdmin';
 import { isAuthed } from './auth';
 
@@ -323,5 +323,43 @@ export async function deleteArticle(id: string): Promise<ActionResult> {
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : '삭제 중 오류' };
+  }
+}
+
+/** 사이트 설정 조회 */
+export async function getSiteSettings(): Promise<SiteSettings> {
+  try {
+    const supabase = getAdminClient();
+    const { data } = await supabase
+      .from('site_settings')
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle();
+    return (data as SiteSettings) ?? DEFAULT_SETTINGS;
+  } catch {
+    return DEFAULT_SETTINGS;
+  }
+}
+
+/** 사이트 설정 저장 */
+export async function saveSiteSettings(formData: FormData): Promise<ActionResult> {
+  if (!(await isAuthed())) return { ok: false, error: '로그인이 필요합니다.' };
+  const settings = {
+    id: 1,
+    site_name: String(formData.get('site_name') ?? '').trim(),
+    owner_name: String(formData.get('owner_name') ?? '').trim(),
+    business_number: String(formData.get('business_number') ?? '').trim(),
+    company_name: String(formData.get('company_name') ?? '').trim(),
+    customer_service: String(formData.get('customer_service') ?? '').trim(),
+    address: String(formData.get('address') ?? '').trim(),
+    copyright: String(formData.get('copyright') ?? '').trim(),
+  };
+  try {
+    const supabase = getAdminClient();
+    const { error } = await supabase.from('site_settings').upsert(settings, { onConflict: 'id' });
+    if (error) return { ok: false, error: '저장 실패: ' + error.message };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : '저장 중 오류' };
   }
 }

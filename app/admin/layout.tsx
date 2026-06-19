@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { isAuthed, logout } from './auth';
 import AdminLogin from './AdminLogin';
 
@@ -24,21 +25,15 @@ export default async function AdminLayout({
           padding: '16px 20px 0',
         }}
       >
-        <div style={{ width: '100%', maxWidth: '720px', margin: '0 auto', textAlign: 'right' }}>
+        <div style={{ width: '100%', maxWidth: '820px', margin: '0 auto', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px' }}>
+          <Link href="/admin" style={{ fontSize: '13px', fontWeight: 600, color: '#888', padding: '6px 12px', border: '1px solid #e5e5e5', borderRadius: '8px', textDecoration: 'none' }}>
+            글 목록
+          </Link>
+          <Link href="/admin/settings" style={{ fontSize: '13px', fontWeight: 600, color: '#c8a96e', padding: '6px 12px', border: '1px solid #e5dcc8', borderRadius: '8px', textDecoration: 'none' }}>
+            사이트 설정
+          </Link>
           <form action={logout}>
-            <button
-              type="submit"
-              style={{
-                backgroundColor: 'transparent',
-                color: '#888',
-                fontSize: '13px',
-                fontWeight: 600,
-                padding: '6px 12px',
-                border: '1px solid #e5e5e5',
-                borderRadius: '8px',
-                cursor: 'pointer',
-              }}
-            >
+            <button type="submit" style={{ backgroundColor: 'transparent', color: '#888', fontSize: '13px', fontWeight: 600, padding: '6px 12px', border: '1px solid #e5e5e5', borderRadius: '8px', cursor: 'pointer' }}>
               로그아웃
             </button>
           </form>

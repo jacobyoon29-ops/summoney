@@ -24,6 +24,29 @@ export type Category = (typeof CATEGORIES)[number];
 // 커버 이미지를 올리는 Storage 버킷 이름
 export const COVER_BUCKET = 'covers';
 
+// site_settings 테이블의 한 행 (id = 1 고정)
+export type SiteSettings = {
+  id: number;
+  site_name: string;
+  owner_name: string;
+  business_number: string;
+  company_name: string;
+  customer_service: string;
+  address: string;
+  copyright: string;
+};
+
+export const DEFAULT_SETTINGS: SiteSettings = {
+  id: 1,
+  site_name: '써머니',
+  owner_name: '윤덕주',
+  business_number: '126-95-41371',
+  company_name: '개인의 서사',
+  customer_service: '',
+  address: '경기도 부천시 원미구 부천로198번길 18, 202동 10층 (춘의동, 춘의테크노파크II)',
+  copyright: 'Copyright © 써머니 All Rights Reserved',
+};
+
 // articles 테이블의 한 행
 export type Article = {
   id: string;
