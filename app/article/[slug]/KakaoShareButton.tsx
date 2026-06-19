@@ -52,8 +52,12 @@ export default function KakaoShareButton({ title, description, imageUrl }: Props
             title,
             description,
             ...(imageUrl ? { imageUrl } : {}),
-            link: { mobileWebUrl: url, webUrl: url },
+            link: {
+              webUrl: url,
+              mobileWebUrl: url,
+            },
           },
+          installTalk: true,
         });
         return;
       } catch (e) {
@@ -90,9 +94,8 @@ export default function KakaoShareButton({ title, description, imageUrl }: Props
       }}
     >
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="10" cy="10" r="10" fill="#FEE500"/>
-        <path d="M10 4C6.686 4 4 6.239 4 9c0 1.752 1.07 3.29 2.686 4.22L6 16l2.857-1.5C9.22 14.83 9.605 14.857 10 14.857 13.314 14.857 16 12.618 16 9c0-2.761-2.686-5-6-5z" fill="#391B1B"/>
-        <text x="10" y="11" textAnchor="middle" fill="#FEE500" fontSize="3.5" fontWeight="bold">talk</text>
+        <path d="M10 1C5.03 1 1 4.358 1 8.5c0 2.674 1.676 5.025 4.2 6.394L4.2 18l3.8-2.1c.645.09 1.31.137 1.998.137C14.97 16 19 12.642 19 8.5S14.97 1 10 1z" fill="#1E1E1E"/>
+        <text x="10" y="11.5" textAnchor="middle" fill="#FEE500" fontSize="4" fontWeight="900" fontFamily="Arial, sans-serif">TALK</text>
       </svg>
       카카오톡 공유
     </button>
