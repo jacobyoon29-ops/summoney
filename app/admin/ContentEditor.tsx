@@ -359,7 +359,10 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
               </button>
               <button type="button"
                 onClick={() => {
-                  editor?.chain().focus().insertContent({ type: 'progressBar', attrs: { items: pbItems } }).run();
+                  if (editor) {
+                    const insertPos = editor.state.selection.to;
+                    editor.chain().insertContentAt(insertPos, { type: 'progressBar', attrs: { items: pbItems } }).focus().run();
+                  }
                   setPbModal(false);
                 }}
                 style={{ padding: '8px 24px', fontSize: '14px', fontWeight: 700, backgroundColor: '#c8a96e', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
