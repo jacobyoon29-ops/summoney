@@ -9,6 +9,7 @@ declare global {
       init: (key: string) => void;
       Share: {
         sendDefault: (options: Record<string, unknown>) => void;
+        sendScrap: (options: Record<string, unknown>) => void;
       };
     };
   }
@@ -16,13 +17,7 @@ declare global {
 
 const APP_KEY = 'c06b27a2320bba7ab68559a89822f945';
 
-type Props = {
-  title: string;
-  description: string;
-  imageUrl: string | null;
-};
-
-export default function KakaoShareButton({ title, description, imageUrl }: Props) {
+export default function KakaoShareButton() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -46,29 +41,16 @@ export default function KakaoShareButton({ title, description, imageUrl }: Props
 
     if (ready && window.Kakao?.Share) {
       try {
-        window.Kakao.Share.sendDefault({
-          objectType: 'feed',
-          content: {
-            title,
-            description,
-            ...(imageUrl ? { imageUrl } : {}),
-            link: {
-              webUrl: url,
-              mobileWebUrl: url,
-            },
-          },
-          installTalk: true,
-        });
+        window.Kakao.Share.sendScrap({ requestUrl: url });
         return;
       } catch (e) {
-        console.warn('[Kakao] sendDefault 실패, fallback 사용:', e);
+        console.warn('[Kakao] sendScrap 실패, fallback 사용:', e);
       }
     }
 
-    // fallback: 카카오 공유 URL
-    const params = encodeURIComponent(JSON.stringify({ title, description, url }));
+    // fallback
     window.open(
-      `https://sharer.kakao.com/talk/friends/picker/link?app_key=${APP_KEY}&validation_action=default&validation_params=${params}`,
+      `https://sharer.kakao.com/talk/friends/picker/easylink?app_key=${APP_KEY}&shimmed_url=${encodeURIComponent(url)}`,
       '_blank',
       'width=500,height=600'
     );
@@ -95,7 +77,7 @@ export default function KakaoShareButton({ title, description, imageUrl }: Props
     >
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M10 1C5.03 1 1 4.358 1 8.5c0 2.674 1.676 5.025 4.2 6.394L4.2 18l3.8-2.1c.645.09 1.31.137 1.998.137C14.97 16 19 12.642 19 8.5S14.97 1 10 1z" fill="#1E1E1E"/>
-        <text x="10" y="10" textAnchor="middle" dominantBaseline="central" fill="#FEE500" fontSize="4" fontWeight="900" fontFamily="Arial, sans-serif">TALK</text>
+        <text x="10" y="9" textAnchor="middle" dominantBaseline="central" fill="#FEE500" fontSize="4" fontWeight="900" fontFamily="Arial, sans-serif">TALK</text>
       </svg>
       카카오톡 공유
     </button>
