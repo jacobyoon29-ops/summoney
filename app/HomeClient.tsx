@@ -60,14 +60,14 @@ export default function HomeClient({ articles }: { articles: HomeArticle[] }) {
       {/* 헤더 */}
       <header style={{
         position: 'fixed', top: '16px', left: 0, right: 0,
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid #f0f0f0',
+        backgroundColor: '#1c1a17',
+        borderBottom: '1px solid #2e2b26',
         padding: isMobile ? '0 20px' : '0 40px',
         height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         zIndex: 1000, transform: headerVisible ? 'translateY(0)' : 'translateY(-100%)',
         transition: 'transform 0.3s ease'
       }}>
-        <span style={{ color: '#111', fontSize: isMobile ? '18px' : '20px', fontWeight: '800', letterSpacing: '-0.03em' }}>
+        <span style={{ color: '#f5f0e8', fontSize: isMobile ? '18px' : '20px', fontWeight: '800', letterSpacing: '-0.03em' }}>
           써머니
         </span>
         {!isMobile && (
