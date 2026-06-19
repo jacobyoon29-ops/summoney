@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type CSSProperties } from 'react';
+import { useState, useEffect, useCallback, useRef, type CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { CATEGORIES, type Article, type Category } from '@/lib/supabase';
@@ -38,6 +38,82 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
   const [starCount, setStarCount] = useState<string>(String(initial?.star_count ?? 0));
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<null | 'draft' | 'publish' | 'delete'>(null);
+
+  const [showPreview, setShowPreview] = useState(false);
+  const [autoSavedAt, setAutoSavedAt] = useState<string | null>(null);
+  const [draftPrompt, setDraftPrompt] = useState(false);
+  const draftKey = `summoney_draft_${initial?.id ?? 'new'}`;
+  const titleRef = useRef(title);
+  const slugRef = useRef(slug);
+  const summaryRef = useRef(summary);
+  const tagsRef = useRef(tags);
+  const contentRef = useRef(content);
+  const categoryRef = useRef(category);
+  const scheduledAtRef = useRef(scheduledAt);
+  titleRef.current = title;
+  slugRef.current = slug;
+  summaryRef.current = summary;
+  tagsRef.current = tags;
+  contentRef.current = content;
+  categoryRef.current = category;
+  scheduledAtRef.current = scheduledAt;
+
+  const saveDraft = useCallback(() => {
+    const data = {
+      title: titleRef.current,
+      slug: slugRef.current,
+      summary: summaryRef.current,
+      tags: tagsRef.current,
+      content: contentRef.current,
+      category: categoryRef.current,
+      scheduledAt: scheduledAtRef.current,
+      savedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(draftKey, JSON.stringify(data));
+    const now = new Date();
+    setAutoSavedAt(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
+  }, [draftKey]);
+
+  useEffect(() => {
+    const raw = localStorage.getItem(draftKey);
+    if (!raw) return;
+    try {
+      const saved = JSON.parse(raw);
+      if (saved.savedAt) setDraftPrompt(true);
+    } catch { /* ignore */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(saveDraft, 30000);
+    return () => clearInterval(interval);
+  }, [saveDraft]);
+
+  function restoreDraft() {
+    const raw = localStorage.getItem(draftKey);
+    if (!raw) return;
+    try {
+      const saved = JSON.parse(raw);
+      if (saved.title !== undefined) setTitle(saved.title);
+      if (saved.slug !== undefined) setSlug(saved.slug);
+      if (saved.summary !== undefined) setSummary(saved.summary);
+      if (Array.isArray(saved.tags)) setTags(saved.tags);
+      if (saved.content !== undefined) setContent(saved.content);
+      if (saved.category !== undefined) setCategory(saved.category as Category);
+      if (saved.scheduledAt !== undefined) setScheduledAt(saved.scheduledAt);
+    } catch { /* ignore */ }
+    setDraftPrompt(false);
+  }
+
+  function discardDraft() {
+    localStorage.removeItem(draftKey);
+    setDraftPrompt(false);
+  }
+
+  function clearDraft() {
+    localStorage.removeItem(draftKey);
+    setAutoSavedAt(null);
+  }
 
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -136,6 +212,7 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
     }
 
     if (result.ok) {
+      clearDraft();
       router.push('/admin');
       router.refresh();
     } else {
@@ -161,21 +238,49 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
 
   const busy = pending !== null;
 
+  const CATEGORY_COLORS: Record<string, string> = { '비즈니스': '#FF6B6B', '트렌드': '#4ECDC4', 'ESG': '#45B7D1', '재테크': '#96CEB4', '브랜드': '#FFEAA7' };
+  const CATEGORY_TEXT: Record<string, string> = { '비즈니스': '#fff', '트렌드': '#fff', 'ESG': '#fff', '재테크': '#2d6a4f', '브랜드': '#7d6608' };
+
   return (
     <div style={{ backgroundColor: '#fafafa', minHeight: '100vh', fontFamily: '"Pretendard", "Apple SD Gothic Neo", sans-serif', padding: '24px 20px 64px' }}>
-      <div style={{ maxWidth: '720px', margin: '0 auto' }}>
-        <div style={{ marginBottom: '24px' }}>
-          <button
-            onClick={() => router.push('/admin')}
-            style={{ background: 'none', border: 'none', color: '#888', fontSize: '14px', cursor: 'pointer', padding: 0, marginBottom: '12px' }}
-          >
-            ← 목록으로
-          </button>
-          <h1 style={{ color: '#111', fontSize: '28px', fontWeight: 800, letterSpacing: '-0.03em' }}>
-            {isEdit ? '글 수정' : '새 글 작성'}
-          </h1>
+      {/* 자동저장 / 임시저장 복원 팝업 */}
+      {draftPrompt && (
+        <div style={{ position: 'fixed', top: '60px', left: '50%', transform: 'translateX(-50%)', zIndex: 2000, backgroundColor: '#fff', border: '1px solid #e5e5e5', borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.12)', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#333', fontWeight: 600 }}>
+          <span>📝 임시저장된 글이 있습니다. 불러올까요?</span>
+          <button onClick={restoreDraft} style={{ padding: '6px 14px', backgroundColor: '#c8a96e', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700 }}>불러오기</button>
+          <button onClick={discardDraft} style={{ padding: '6px 14px', backgroundColor: 'transparent', color: '#888', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>무시</button>
+        </div>
+      )}
+
+      <div style={{ maxWidth: showPreview ? '1440px' : '720px', margin: '0 auto', transition: 'max-width 0.3s ease' }}>
+        <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+          <div>
+            <button
+              onClick={() => router.push('/admin')}
+              style={{ background: 'none', border: 'none', color: '#888', fontSize: '14px', cursor: 'pointer', padding: 0, marginBottom: '12px' }}
+            >
+              ← 목록으로
+            </button>
+            <h1 style={{ color: '#111', fontSize: '28px', fontWeight: 800, letterSpacing: '-0.03em' }}>
+              {isEdit ? '글 수정' : '새 글 작성'}
+            </h1>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingTop: '32px' }}>
+            {autoSavedAt && (
+              <span style={{ fontSize: '12px', color: '#aaa', fontWeight: 500 }}>자동저장됨 {autoSavedAt}</span>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowPreview((v) => !v)}
+              style={{ padding: '8px 16px', fontSize: '13px', fontWeight: 700, color: showPreview ? '#fff' : '#c8a96e', backgroundColor: showPreview ? '#c8a96e' : '#fff8f0', border: '1.5px solid #c8a96e', borderRadius: '8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+            >
+              {showPreview ? '미리보기 닫기' : '👁 미리보기'}
+            </button>
+          </div>
         </div>
 
+        <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
+        <div style={{ flex: '0 0 680px', minWidth: 0 }}>
         <div style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f0f0f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
           {/* ① 제목 */}
@@ -450,6 +555,50 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
             </button>
           )}
         </div>
+        </div>{/* end form column */}
+
+        {/* 미리보기 패널 */}
+        {showPreview && (
+          <div style={{ flex: 1, minWidth: 0, position: 'sticky', top: '24px', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto', backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #f0f0f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #f0f0f0', fontSize: '12px', fontWeight: 700, color: '#c8a96e', letterSpacing: '0.08em' }}>
+              PREVIEW
+            </div>
+            <div style={{ fontFamily: '"Pretendard", "Apple SD Gothic Neo", sans-serif', backgroundColor: '#fff', minHeight: '400px' }}>
+              {/* 카테고리 */}
+              <div style={{ padding: '24px 24px 0' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '20px', backgroundColor: CATEGORY_COLORS[category] ?? '#eee', color: CATEGORY_TEXT[category] ?? '#333' }}>
+                  {category}
+                </span>
+              </div>
+              {/* 제목 */}
+              <div style={{ padding: '16px 24px 0' }}>
+                <h1 style={{ color: '#111', fontSize: '24px', fontWeight: 800, lineHeight: 1.4, letterSpacing: '-0.03em', margin: 0 }}>
+                  {title || <span style={{ color: '#ccc' }}>제목 없음</span>}
+                </h1>
+              </div>
+              {/* 요약 */}
+              {summary && (
+                <p style={{ padding: '12px 24px 0', color: '#666', fontSize: '15px', lineHeight: 1.6, margin: 0 }}>{summary}</p>
+              )}
+              {/* 커버 이미지 */}
+              {coverPreview && (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={coverPreview} alt="" style={{ width: '100%', maxHeight: '220px', objectFit: 'cover', display: 'block', marginTop: '16px' }} />
+              )}
+              {/* 본문 */}
+              <div style={{ padding: '16px 24px 32px' }}>
+                {content && /<[a-z][\s\S]*>/i.test(content) ? (
+                  <div className="article-body" dangerouslySetInnerHTML={{ __html: content }} />
+                ) : (
+                  <p style={{ color: content ? '#222' : '#ccc', fontSize: '15px', lineHeight: 1.8, whiteSpace: 'pre-wrap', wordBreak: 'keep-all' }}>
+                    {content || '본문이 없습니다.'}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        </div>{/* end split-view */}
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
