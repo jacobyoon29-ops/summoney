@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ScrollProgressBar from './ScrollProgressBar';
+import type { SiteSettings } from '@/lib/supabase';
 
 export type HomeArticle = {
   category: string;
@@ -29,7 +30,7 @@ const CATEGORY_TEXT: Record<string, string> = {
   '브랜드': '#7d6608',
 };
 
-export default function HomeClient({ articles }: { articles: HomeArticle[] }) {
+export default function HomeClient({ articles, siteSettings }: { articles: HomeArticle[]; siteSettings: SiteSettings }) {
   const [headerVisible, setHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
@@ -138,14 +139,16 @@ export default function HomeClient({ articles }: { articles: HomeArticle[] }) {
       </main>
 
       {/* 푸터 */}
-      <footer style={{
-        backgroundColor: '#f8f8f8',
-        borderTop: '1px solid #eee',
-        padding: '40px',
-        textAlign: 'center', color: '#aaa', fontSize: '13px'
-      }}>
-        <p style={{ color: '#111', marginBottom: '8px', fontWeight: '800', fontSize: '16px' }}>써머니</p>
-        <p>세상 모든 트렌드의 돈 되는 면만 골라드립니다</p>
+      <footer style={{ borderTop: '1px solid #f0f0f0', padding: '32px 20px 40px', backgroundColor: '#fafafa' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', color: '#999', fontSize: '12px', lineHeight: 1.9 }}>
+          <p style={{ margin: '0 0 4px', fontWeight: 700, color: '#bbb' }}>{siteSettings.company_name}</p>
+          <p style={{ margin: 0 }}>
+            대표 {siteSettings.owner_name} | 사업자등록번호 {siteSettings.business_number}
+            {siteSettings.customer_service ? ` | 고객센터 ${siteSettings.customer_service}` : ''}
+          </p>
+          <p style={{ margin: 0 }}>{siteSettings.address}</p>
+          <p style={{ marginTop: '12px', color: '#ccc', fontSize: '11px' }}>{siteSettings.copyright}</p>
+        </div>
       </footer>
     </div>
   );

@@ -1,5 +1,5 @@
 import { getAdminClient } from '@/lib/supabaseAdmin';
-import type { Article } from '@/lib/supabase';
+import { DEFAULT_SETTINGS, type Article, type SiteSettings } from '@/lib/supabase';
 import HomeClient, { type HomeArticle } from './HomeClient';
 
 // 발행 직후 바로 반영되도록 매 요청마다 최신 데이터를 읽는다.
@@ -41,9 +41,21 @@ async function getPublishedArticles(): Promise<HomeArticle[]> {
   }
 }
 
+async function getSiteSettings(): Promise<SiteSettings> {
+  try {
+    const supabase = getAdminClient();
+    const { data } = await supabase.from('site_settings').select('*').eq('id', 1).maybeSingle();
+    return (data as SiteSettings) ?? DEFAULT_SETTINGS;
+  } catch {
+    return DEFAULT_SETTINGS;
+  }
+}
+
 export default async function Home() {
-  const published = await getPublishedArticles();
-  // 발행된 글이 있으면 그것을, 없으면 예시 글을 보여준다.
+  const [published, siteSettings] = await Promise.all([
+    getPublishedArticles(),
+    getSiteSettings(),
+  ]);
   const articles = published.length > 0 ? published : SAMPLE_ARTICLES;
-  return <HomeClient articles={articles} />;
+  return <HomeClient articles={articles} siteSettings={siteSettings} />;
 }
