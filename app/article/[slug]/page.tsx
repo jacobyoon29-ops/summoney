@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getAdminClient } from '@/lib/supabaseAdmin';
-import { DEFAULT_SETTINGS, type Article, type SiteSettings } from '@/lib/supabase';
+import type { Article } from '@/lib/supabase';
 import ScrollProgressBar from '../../ScrollProgressBar';
 import ArticleActions from './ArticleActions';
 import HighlightObserver from './HighlightObserver';
@@ -11,15 +11,6 @@ import ProgressBarObserver from './ProgressBarObserver';
 
 export const dynamic = 'force-dynamic';
 
-async function getSiteSettings(): Promise<SiteSettings> {
-  try {
-    const supabase = getAdminClient();
-    const { data } = await supabase.from('site_settings').select('*').eq('id', 1).maybeSingle();
-    return (data as SiteSettings) ?? DEFAULT_SETTINGS;
-  } catch {
-    return DEFAULT_SETTINGS;
-  }
-}
 
 const CATEGORY_COLORS: Record<string, string> = {
   비즈니스: '#FF6B6B',
@@ -106,10 +97,7 @@ export default async function ArticlePage({
   const article = await getPublishedBySlug(slug);
   if (!article) notFound();
 
-  const [related, siteSettings] = await Promise.all([
-    getRelatedArticles(article.related_ids ?? []),
-    getSiteSettings(),
-  ]);
+  const related = await getRelatedArticles(article.related_ids ?? []);
   const date = (article.published_at ?? article.created_at).slice(0, 10).replace(/-/g, '.');
 
   return (
@@ -339,19 +327,6 @@ export default async function ArticlePage({
           </div>
         </section>
       )}
-
-      {/* 푸터 */}
-      <footer style={{ borderTop: '1px solid #f0f0f0', padding: '32px 20px 40px', backgroundColor: '#fafafa' }}>
-        <div style={{ maxWidth: '720px', margin: '0 auto', color: '#999', fontSize: '12px', lineHeight: 1.9 }}>
-          <p style={{ margin: '0 0 4px', fontWeight: 700, color: '#bbb' }}>{siteSettings.company_name}</p>
-          <p style={{ margin: 0 }}>대표 {siteSettings.owner_name} | 사업자등록번호 {siteSettings.business_number}</p>
-          {siteSettings.customer_service && (
-            <p style={{ margin: 0 }}>고객센터 {siteSettings.customer_service}</p>
-          )}
-          <p style={{ margin: 0 }}>{siteSettings.address}</p>
-          <p style={{ marginTop: '12px', color: '#ccc', fontSize: '11px' }}>{siteSettings.copyright}</p>
-        </div>
-      </footer>
     </div>
   );
 }
