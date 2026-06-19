@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+
 declare global {
   interface Window {
     Kakao?: {
@@ -12,6 +14,8 @@ declare global {
   }
 }
 
+const APP_KEY = 'c06b27a2320bba7ab68559a89822f945';
+
 type Props = {
   title: string;
   description: string;
@@ -19,35 +23,51 @@ type Props = {
 };
 
 export default function KakaoShareButton({ title, description, imageUrl }: Props) {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    // SDK가 이미 로드됐을 수도 있고, 아직 로드 중일 수도 있어서 폴링
+    let tries = 0;
+    const id = setInterval(() => {
+      if (window.Kakao) {
+        if (!window.Kakao.isInitialized()) {
+          window.Kakao.init(APP_KEY);
+        }
+        setReady(true);
+        clearInterval(id);
+      }
+      if (++tries > 20) clearInterval(id); // 10초 후 포기
+    }, 500);
+    return () => clearInterval(id);
+  }, []);
+
   function handleShare() {
-    console.log('[Kakao] 버튼 클릭됨');
+    const url = window.location.href;
 
-    const kakao = window.Kakao;
-    if (!kakao) {
-      console.warn('[Kakao] window.Kakao 없음 — SDK 로드 안 됨');
-      return;
+    if (ready && window.Kakao?.Share) {
+      try {
+        window.Kakao.Share.sendDefault({
+          objectType: 'feed',
+          content: {
+            title,
+            description,
+            ...(imageUrl ? { imageUrl } : {}),
+            link: { mobileWebUrl: url, webUrl: url },
+          },
+        });
+        return;
+      } catch (e) {
+        console.warn('[Kakao] sendDefault 실패, fallback 사용:', e);
+      }
     }
-    console.log('[Kakao] SDK 감지됨, isInitialized:', kakao.isInitialized());
 
-    if (!kakao.isInitialized()) {
-      kakao.init('c06b27a2320bba7ab68559a89822f945');
-      console.log('[Kakao] init 완료');
-    }
-
-    const payload = {
-      objectType: 'feed',
-      content: {
-        title,
-        description,
-        ...(imageUrl ? { imageUrl } : {}),
-        link: {
-          mobileWebUrl: window.location.href,
-          webUrl: window.location.href,
-        },
-      },
-    };
-    console.log('[Kakao] sendDefault 호출:', payload);
-    kakao.Share.sendDefault(payload);
+    // fallback: 카카오 공유 URL
+    const params = encodeURIComponent(JSON.stringify({ title, description, url }));
+    window.open(
+      `https://sharer.kakao.com/talk/friends/picker/link?app_key=${APP_KEY}&validation_action=default&validation_params=${params}`,
+      '_blank',
+      'width=500,height=600'
+    );
   }
 
   return (
@@ -69,8 +89,10 @@ export default function KakaoShareButton({ title, description, imageUrl }: Props
         whiteSpace: 'nowrap',
       }}
     >
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <path d="M9 1C4.582 1 1 3.79 1 7.182c0 2.153 1.376 4.047 3.456 5.148L3.5 16l4.087-2.182C7.847 13.93 8.42 14 9 14c4.418 0 8-2.79 8-6.182C17 4.29 13.418 1 9 1z" fill="#391B1B"/>
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="10" cy="10" r="10" fill="#FEE500"/>
+        <path d="M10 4C6.686 4 4 6.239 4 9c0 1.752 1.07 3.29 2.686 4.22L6 16l2.857-1.5C9.22 14.83 9.605 14.857 10 14.857 13.314 14.857 16 12.618 16 9c0-2.761-2.686-5-6-5z" fill="#391B1B"/>
+        <text x="10" y="11" textAnchor="middle" fill="#FEE500" fontSize="3.5" fontWeight="bold">talk</text>
       </svg>
       카카오톡 공유
     </button>
