@@ -6,6 +6,7 @@ import type { Article } from '@/lib/supabase';
 import ScrollProgressBar from '../../ScrollProgressBar';
 import ArticleActions from './ArticleActions';
 import CopyLinkButton from './CopyLinkButton';
+import KakaoShareButton from './KakaoShareButton';
 import HighlightObserver from './HighlightObserver';
 import NumberCountup from './NumberCountup';
 import ProgressBarObserver from './ProgressBarObserver';
@@ -184,11 +185,18 @@ export default async function ArticlePage({
             {article.summary}
           </p>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
-          <p style={{ color: '#bbb', fontSize: '13px', margin: 0 }}>{date}</p>
-          <span style={{ color: '#ddd', fontSize: '13px' }}>·</span>
-          <p style={{ color: '#bbb', fontSize: '13px', margin: 0 }}>약 {readingTime}분 읽기</p>
-          <CopyLinkButton />
+        <div style={{ marginBottom: '16px' }}>
+          <p style={{ color: '#bbb', fontSize: '13px', margin: '0 0 10px' }}>
+            {date} · 약 {readingTime}분 읽기
+          </p>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <CopyLinkButton />
+            <KakaoShareButton
+              title={article.title}
+              description={article.summary ?? ''}
+              imageUrl={article.cover_image ?? null}
+            />
+          </div>
         </div>
 
         <ArticleActions
