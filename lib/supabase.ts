@@ -63,5 +63,6 @@ export type Article = {
   related_ids: string[] | null;
   view_count: number;
   star_count: number;
+  is_featured: boolean;
   created_at: string;
 };

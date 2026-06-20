@@ -363,3 +363,19 @@ export async function saveSiteSettings(formData: FormData): Promise<ActionResult
     return { ok: false, error: e instanceof Error ? e.message : '저장 중 오류' };
   }
 }
+
+/** is_featured 토글 */
+export async function toggleFeatured(id: string, current: boolean): Promise<ActionResult> {
+  if (!(await isAuthed())) return { ok: false, error: '로그인이 필요합니다.' };
+  try {
+    const supabase = getAdminClient();
+    const { error } = await supabase
+      .from('articles')
+      .update({ is_featured: !current })
+      .eq('id', id);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : '오류' };
+  }
+}

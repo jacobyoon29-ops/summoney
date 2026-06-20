@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getArticles } from './actions';
 import DeleteButton from './DeleteButton';
+import FeaturedButton from './FeaturedButton';
 
 const CATEGORY_COLORS: Record<string, string> = {
   비즈니스: '#FF6B6B',
@@ -181,6 +182,7 @@ export default async function AdminListPage() {
 
                 {/* 액션 */}
                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                  <FeaturedButton id={a.id} isFeatured={a.is_featured ?? false} />
                   <Link
                     href={`/admin/edit/${a.id}`}
                     style={{
