@@ -158,9 +158,10 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
             <div style={{
               position: 'relative',
               width: '100%',
-              height: '260px',
+              height: '300px',
               overflow: 'hidden',
               borderRadius: '12px',
+              border: '0.5px solid rgba(255,255,255,0.08)',
               flexShrink: 0,
             }}>
               <Carousel articles={featuredArticles} />
@@ -248,17 +249,19 @@ function Carousel({ articles }: { articles: HomeArticle[] }) {
   const article = articles[current];
 
   return (
-    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', backgroundColor: '#2e2b26' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       {/* 슬라이드 */}
-      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}>
         {article.coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={article.coverImage}
             alt={article.title}
             style={{
-              width: '100%', height: '100%',
-              objectFit: 'cover', objectPosition: 'center',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
               display: 'block',
               opacity: fading ? 0 : 1,
               transition: 'opacity 0.6s ease',
