@@ -88,9 +88,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const article = await getPublishedBySlug(slug);
-  if (!article) return { title: '써머니' };
+  if (!article) return { title: '줍줍줍' };
   return {
-    title: `${article.title} | 써머니`,
+    title: `${article.title} | 줍줍줍`,
     description: article.summary ?? undefined,
   };
 }
@@ -136,7 +136,7 @@ export default async function ArticlePage({
             href="/"
             style={{ color: '#111', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.03em', textDecoration: 'none' }}
           >
-            써머니
+            줍줍줍
           </Link>
         </div>
       </header>

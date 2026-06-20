@@ -56,7 +56,7 @@ export default async function AdminListPage() {
                 marginBottom: '8px',
               }}
             >
-              SUMMONEY ADMIN
+              줍줍줍 ADMIN
             </p>
             <h1 style={{ color: '#111', fontSize: '28px', fontWeight: 800, letterSpacing: '-0.03em' }}>
               글 목록

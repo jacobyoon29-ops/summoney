@@ -18,7 +18,7 @@ export default async function SettingsPage() {
     }}>
       <div style={{ maxWidth: '640px', margin: '0 auto' }}>
         <p style={{ color: '#c8a96e', fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', marginBottom: '8px' }}>
-          SUMMONEY ADMIN
+          줍줍줍 ADMIN
         </p>
         <h1 style={{ color: '#111', fontSize: '28px', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: '32px' }}>
           사이트 설정

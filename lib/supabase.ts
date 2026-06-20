@@ -38,13 +38,13 @@ export type SiteSettings = {
 
 export const DEFAULT_SETTINGS: SiteSettings = {
   id: 1,
-  site_name: '써머니',
+  site_name: '줍줍줍',
   owner_name: '윤덕주',
   business_number: '126-95-41371',
   company_name: '개인의 서사',
   customer_service: '',
   address: '경기도 부천시 원미구 부천로198번길 18, 202동 10층 (춘의동, 춘의테크노파크II)',
-  copyright: 'Copyright © 써머니 All Rights Reserved',
+  copyright: 'Copyright © 줍줍줍 All Rights Reserved',
 };
 
 // articles 테이블의 한 행

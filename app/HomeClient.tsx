@@ -83,7 +83,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
         transition: 'transform 0.3s ease'
       }}>
         <span style={{ color: '#f5f0e8', fontSize: isMobile ? '18px' : '20px', fontWeight: '800', letterSpacing: '-0.03em' }}>
-          써머니
+          줍줍줍
         </span>
         {!isMobile && (
           <nav style={{ display: 'flex', gap: '8px' }}>
@@ -108,7 +108,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
         borderBottom: '1px solid #f0f0f0'
       }}>
         <p style={{ color: '#FF6B6B', fontSize: '13px', fontWeight: '700', letterSpacing: '0.1em', marginBottom: '16px' }}>
-          SUMMONEY
+          줍줍줍
         </p>
         <h1 style={{ color: '#111', fontSize: isMobile ? '26px' : '38px', fontWeight: '800', lineHeight: '1.4', marginBottom: '16px', letterSpacing: '-0.03em' }}>
           세상 모든 트렌드의<br />돈 되는 면만 골라드립니다

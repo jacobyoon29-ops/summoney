@@ -65,7 +65,7 @@ export default function AdminLogin() {
               marginBottom: '8px',
             }}
           >
-            SUMMONEY ADMIN
+            줍줍줍 ADMIN
           </p>
           <h1
             style={{

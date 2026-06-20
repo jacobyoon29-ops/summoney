@@ -38,7 +38,7 @@ async function pickRelatedIds(
       max_tokens: 128,
       messages: [{
         role: 'user',
-        content: `써머니(비즈니스/트렌드/ESG/재테크 미디어)의 편집자입니다.
+        content: `줍줍줍(비즈니스/트렌드/ESG/재테크 미디어)의 편집자입니다.
 아래 [현재 글]과 가장 관련성 높은 글 3개를 [후보 목록]에서 골라 id만 JSON 배열로 반환하세요.
 관련성 기준: 동일 주제, 연관 키워드, 독자가 이어서 읽을 만한 흐름.
 후보가 3개 미만이면 있는 것만 반환. JSON 외 텍스트 금지.
