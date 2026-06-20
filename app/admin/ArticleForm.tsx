@@ -186,37 +186,43 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
     setError(null);
     setPending(publish ? 'publish' : 'draft');
 
-    const fd = new FormData();
-    fd.append('title', title.trim());
-    fd.append('slug', slug.trim());
-    fd.append('summary', summary.trim());
-    fd.append('tags', tags.join(','));
-    fd.append('content', content.trim());
-    fd.append('category', category);
-    fd.append('is_published', String(publish));
-    fd.append('scheduled_at', scheduledAt);
-    if (isEdit) {
-      fd.append('view_count', viewCount);
-      fd.append('star_count', starCount);
-    }
-    if (coverFile) fd.append('cover', coverFile);
+    try {
+      const fd = new FormData();
+      fd.append('title', title.trim());
+      fd.append('slug', slug.trim());
+      fd.append('summary', summary.trim());
+      fd.append('tags', tags.join(','));
+      fd.append('content', content.trim());
+      fd.append('category', category);
+      fd.append('is_published', String(publish));
+      fd.append('scheduled_at', scheduledAt);
+      if (isEdit) {
+        fd.append('view_count', viewCount);
+        fd.append('star_count', starCount);
+      }
+      if (coverFile) fd.append('cover', coverFile);
 
-    let result;
-    if (isEdit) {
-      fd.append('id', initial!.id);
-      fd.append('existing_cover', initial!.cover_image ?? '');
-      fd.append('remove_cover', String(removeCover));
-      result = await updateArticle(fd);
-    } else {
-      result = await createArticle(fd);
-    }
+      let result;
+      if (isEdit) {
+        fd.append('id', initial!.id);
+        fd.append('existing_cover', initial!.cover_image ?? '');
+        fd.append('remove_cover', String(removeCover));
+        result = await updateArticle(fd);
+      } else {
+        result = await createArticle(fd);
+      }
 
-    if (result.ok) {
-      clearDraft();
-      router.push('/admin');
-      router.refresh();
-    } else {
-      setError(result.error);
+      if (result.ok) {
+        clearDraft();
+        setPending(null);
+        router.push('/admin');
+        router.refresh();
+      } else {
+        setError(result.error);
+        setPending(null);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.');
       setPending(null);
     }
   }
