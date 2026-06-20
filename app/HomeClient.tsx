@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import ScrollProgressBar from './ScrollProgressBar';
 import type { SiteSettings } from '@/lib/supabase';
 
 export type HomeArticle = {
@@ -70,7 +69,6 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
 
   return (
     <div style={{ backgroundColor: '#f8f7f4', minHeight: '100vh', fontFamily: '"Pretendard", "Apple SD Gothic Neo", sans-serif' }}>
-      <ScrollProgressBar />
 
       {/* 헤더 */}
       <header style={{
