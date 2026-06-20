@@ -114,50 +114,59 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
       </header>
 
       {/* 히어로 */}
-      <div style={{
-        backgroundColor: '#1c1a17',
-        padding: isMobile ? '96px 20px 40px' : '100px 40px 40px',
-        display: 'flex',
-        flexDirection: isMobile ? 'column' : 'row',
-        alignItems: 'center',
-        gap: isMobile ? '32px' : '48px',
-        minHeight: isMobile ? 'auto' : 'auto',
-      }}>
-        {/* 왼쪽 텍스트 */}
-        <div style={{ flex: '1.2', minWidth: 0, maxWidth: isMobile ? '100%' : undefined }}>
-          <p style={{ color: '#c8a96e', fontSize: '11px', fontWeight: 700, letterSpacing: '5px', marginBottom: '20px' }}>
-            JUPJUPJUP
-          </p>
-          <h1 style={{
-            color: '#fff', fontSize: isMobile ? '28px' : '44px', fontWeight: 800,
-            lineHeight: 1.25, letterSpacing: '-0.03em', marginBottom: '16px',
-          }}>
-            알면 더 재밌는<br />것들을 줍줍줍
-          </h1>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', marginBottom: '28px' }}>
-            장르 불문, 세상 모든 이야기
-          </p>
-          <div style={{ width: '40px', height: '2px', backgroundColor: '#c8a96e', marginBottom: '28px' }} />
-          <a
-            href="#articles"
-            style={{
-              display: 'inline-block', padding: '10px 22px',
-              border: '1px solid rgba(255,255,255,0.3)', borderRadius: '6px',
-              color: '#f5f0e8', fontSize: '14px', fontWeight: 600,
-              textDecoration: 'none', transition: 'background 0.2s',
-            }}
-          >
-            최신글 보기 →
-          </a>
-        </div>
-
-        {/* 오른쪽 캐러셀 */}
-        {featuredArticles.length > 0 && (
-          <div style={{ flex: 1, width: isMobile ? '100%' : undefined, minWidth: 0 }}>
-            <Carousel articles={featuredArticles} />
+      <div style={{ backgroundColor: '#1c1a17', overflow: 'hidden' }}>
+        <div style={{
+          display: isMobile ? 'flex' : 'grid',
+          flexDirection: isMobile ? 'column' : undefined,
+          gridTemplateColumns: isMobile ? undefined : '1.2fr 1fr',
+          gap: '32px',
+          padding: isMobile ? '96px 20px 40px' : '48px 40px',
+          alignItems: 'center',
+          maxWidth: '1200px',
+          margin: '0 auto',
+        }}>
+          {/* 왼쪽 텍스트 */}
+          <div>
+            <p style={{ color: '#c8a96e', fontSize: '11px', fontWeight: 700, letterSpacing: '5px', marginBottom: '20px' }}>
+              JUPJUPJUP
+            </p>
+            <h1 style={{
+              color: '#fff', fontSize: isMobile ? '28px' : '44px', fontWeight: 800,
+              lineHeight: 1.25, letterSpacing: '-0.03em', marginBottom: '16px',
+            }}>
+              알면 더 재밌는<br />것들을 줍줍줍
+            </h1>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', marginBottom: '28px' }}>
+              장르 불문, 세상 모든 이야기
+            </p>
+            <div style={{ width: '40px', height: '2px', backgroundColor: '#c8a96e', marginBottom: '28px' }} />
+            <a
+              href="#articles"
+              style={{
+                display: 'inline-block', padding: '10px 22px',
+                border: '1px solid rgba(255,255,255,0.3)', borderRadius: '6px',
+                color: '#f5f0e8', fontSize: '14px', fontWeight: 600,
+                textDecoration: 'none',
+              }}
+            >
+              최신글 보기 →
+            </a>
           </div>
-        )}
 
+          {/* 오른쪽 캐러셀 */}
+          {featuredArticles.length > 0 && (
+            <div style={{
+              position: 'relative',
+              width: '100%',
+              height: '260px',
+              overflow: 'hidden',
+              borderRadius: '12px',
+              flexShrink: 0,
+            }}>
+              <Carousel articles={featuredArticles} />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 글 목록 */}
@@ -239,57 +248,55 @@ function Carousel({ articles }: { articles: HomeArticle[] }) {
   const article = articles[current];
 
   return (
-    <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', height: '280px', backgroundColor: '#2e2b26' }}>
-      {/* 이미지 */}
-      {article.coverImage ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={article.coverImage}
-          alt={article.title}
-          style={{
-            position: 'absolute', inset: 0,
+    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', backgroundColor: '#2e2b26' }}>
+      {/* 슬라이드 */}
+      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+        {article.coverImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={article.coverImage}
+            alt={article.title}
+            style={{
+              width: '100%', height: '100%',
+              objectFit: 'cover', objectPosition: 'center',
+              display: 'block',
+              opacity: fading ? 0 : 1,
+              transition: 'opacity 0.6s ease',
+            }}
+          />
+        ) : (
+          <div style={{
             width: '100%', height: '100%',
-            objectFit: 'cover', objectPosition: 'center top',
+            backgroundColor: CATEGORY_BG[article.category] ?? '#2e2b26',
             opacity: fading ? 0 : 1,
             transition: 'opacity 0.6s ease',
-          }}
-        />
-      ) : (
-        <div style={{
-          position: 'absolute', inset: 0,
-          backgroundColor: CATEGORY_BG[article.category] ?? '#2e2b26',
-          opacity: fading ? 0 : 1,
-          transition: 'opacity 0.6s ease',
-        }} />
-      )}
+          }} />
+        )}
+      </div>
 
-      {/* 그라데이션 오버레이 */}
+      {/* 오버레이 */}
       <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.1) 60%, transparent 100%)',
-      }} />
-
-      {/* 텍스트 오버레이 */}
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px',
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        padding: '12px 16px',
+        background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
         opacity: fading ? 0 : 1, transition: 'opacity 0.6s ease',
       }}>
         <span style={{
           fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px',
           backgroundColor: CATEGORY_COLORS[article.category] ?? '#eee',
           color: CATEGORY_TEXT[article.category] ?? '#333',
-          display: 'inline-block', marginBottom: '8px',
+          display: 'inline-block', marginBottom: '6px',
         }}>
           {article.category}
         </span>
         {article.slug ? (
           <Link href={`/article/${article.slug}`} style={{ textDecoration: 'none' }}>
-            <p style={{ color: '#fff', fontSize: '17px', fontWeight: 800, lineHeight: 1.4, margin: 0, letterSpacing: '-0.02em' }}>
+            <p style={{ color: '#fff', fontSize: '16px', fontWeight: 800, lineHeight: 1.4, margin: 0, letterSpacing: '-0.02em' }}>
               {article.title}
             </p>
           </Link>
         ) : (
-          <p style={{ color: '#fff', fontSize: '17px', fontWeight: 800, lineHeight: 1.4, margin: 0 }}>{article.title}</p>
+          <p style={{ color: '#fff', fontSize: '16px', fontWeight: 800, lineHeight: 1.4, margin: 0 }}>{article.title}</p>
         )}
       </div>
 
@@ -303,7 +310,7 @@ function Carousel({ articles }: { articles: HomeArticle[] }) {
 
       {/* 하단 dot */}
       {articles.length > 1 && (
-        <div style={{ position: 'absolute', bottom: '12px', right: '16px', display: 'flex', gap: '6px' }}>
+        <div style={{ position: 'absolute', bottom: '12px', right: '12px', display: 'flex', gap: '6px' }}>
           {articles.map((_, i) => (
             <button
               key={i}
