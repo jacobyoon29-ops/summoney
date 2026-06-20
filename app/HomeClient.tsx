@@ -114,7 +114,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
       </header>
 
       {/* 히어로 */}
-      <section style={{ backgroundColor: '#1c1a17' }}>
+      <section style={{ backgroundColor: '#1c1a17', padding: '0 40px' }}>
         <div style={{
           maxWidth: '1200px',
           margin: '0 auto',
@@ -142,6 +142,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
             <div style={{
               position: 'relative',
               width: '100%',
+              maxWidth: '500px',
               height: '300px',
               borderRadius: '12px',
               overflow: 'hidden',
