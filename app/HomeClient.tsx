@@ -238,16 +238,29 @@ function Carousel({ articles }: { articles: HomeArticle[] }) {
   const article = articles[current];
 
   return (
-    <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', aspectRatio: '16/9', backgroundColor: '#2e2b26', maxHeight: '320px' }}>
-      {/* 이미지 / 배경 */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        backgroundImage: article.coverImage ? `url(${article.coverImage})` : undefined,
-        backgroundColor: CATEGORY_BG[article.category] ?? '#2e2b26',
-        backgroundSize: 'cover', backgroundPosition: 'center',
-        opacity: fading ? 0 : 1,
-        transition: 'opacity 0.6s ease',
-      }} />
+    <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', height: '360px', backgroundColor: '#2e2b26' }}>
+      {/* 이미지 */}
+      {article.coverImage ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={article.coverImage}
+          alt={article.title}
+          style={{
+            position: 'absolute', inset: 0,
+            width: '100%', height: '100%',
+            objectFit: 'cover', objectPosition: 'center',
+            opacity: fading ? 0 : 1,
+            transition: 'opacity 0.6s ease',
+          }}
+        />
+      ) : (
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundColor: CATEGORY_BG[article.category] ?? '#2e2b26',
+          opacity: fading ? 0 : 1,
+          transition: 'opacity 0.6s ease',
+        }} />
+      )}
 
       {/* 그라데이션 오버레이 */}
       <div style={{
