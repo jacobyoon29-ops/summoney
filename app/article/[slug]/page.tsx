@@ -134,7 +134,7 @@ export default async function ArticlePage({
         <div style={{ maxWidth: '720px', margin: '0 auto', width: '100%' }}>
           <Link
             href="/"
-            style={{ color: '#111', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.03em', textDecoration: 'none' }}
+            style={{ color: '#111', fontSize: '26px', fontWeight: 700, letterSpacing: '-0.03em', textDecoration: 'none' }}
           >
             줍줍줍
           </Link>
