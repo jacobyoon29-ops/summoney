@@ -82,9 +82,9 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
         zIndex: 1000, transform: headerVisible ? 'translateY(0)' : 'translateY(-100%)',
         transition: 'transform 0.3s ease'
       }}>
-        <span style={{ color: '#f5f0e8', fontSize: isMobile ? '18px' : '20px', fontWeight: '800', letterSpacing: '-0.03em' }}>
+        <Link href="/" style={{ color: '#f5f0e8', fontSize: isMobile ? '18px' : '20px', fontWeight: '800', letterSpacing: '-0.03em', textDecoration: 'none' }}>
           줍줍줍
-        </span>
+        </Link>
         {!isMobile && (
           <nav style={{ display: 'flex', gap: '8px' }}>
             {['비즈니스', '트렌드', 'ESG', '재테크', '브랜드'].map(cat => (
