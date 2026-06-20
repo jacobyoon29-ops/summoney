@@ -114,61 +114,44 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
       </header>
 
       {/* 히어로 */}
-      <div style={{ backgroundColor: '#1c1a17', overflow: 'hidden', padding: '0 40px' }}>
+      <section style={{ backgroundColor: '#1c1a17' }}>
         <div style={{
-          display: isMobile ? 'flex' : 'grid',
-          flexDirection: isMobile ? 'column' : undefined,
-          gridTemplateColumns: isMobile ? undefined : '1.2fr 1fr',
-          gap: '32px',
-          padding: isMobile ? '60px 0px' : '48px 0px',
-          alignItems: 'center',
           maxWidth: '1200px',
           margin: '0 auto',
+          padding: '60px 40px',
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+          gap: '40px',
+          alignItems: 'center',
         }}>
           {/* 왼쪽 텍스트 */}
           <div>
-            <p style={{ color: '#c8a96e', fontSize: '11px', fontWeight: 700, letterSpacing: '5px', marginBottom: '20px' }}>
-              JUPJUPJUP
-            </p>
-            <h1 style={{
-              color: '#fff', fontSize: isMobile ? '32px' : '52px', fontWeight: 900,
-              lineHeight: 1.25, letterSpacing: '-0.03em', marginBottom: '16px',
-            }}>
+            <p style={{ color: '#c8a96e', fontSize: '11px', letterSpacing: '5px', marginBottom: '16px' }}>JUPJUPJUP</p>
+            <h1 style={{ color: '#fff', fontSize: isMobile ? '36px' : '56px', fontWeight: '900', lineHeight: '1.2', letterSpacing: '-2px', marginBottom: '12px' }}>
               알면 더 재밌는<br />것들을 줍줍줍
             </h1>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', marginBottom: '28px' }}>
-              장르 불문, 세상 모든 이야기
-            </p>
-            <div style={{ width: '40px', height: '2px', backgroundColor: '#c8a96e', marginBottom: '28px' }} />
-            <a
-              href="#articles"
-              style={{
-                display: 'inline-block', padding: '10px 22px',
-                border: '1px solid rgba(255,255,255,0.3)', borderRadius: '6px',
-                color: '#f5f0e8', fontSize: '14px', fontWeight: 600,
-                textDecoration: 'none',
-              }}
-            >
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', letterSpacing: '1px', marginBottom: '32px' }}>장르 불문, 세상 모든 이야기</p>
+            <div style={{ width: '40px', height: '1px', backgroundColor: '#c8a96e', marginBottom: '28px' }} />
+            <button style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '10px 20px', color: 'rgba(255,255,255,0.7)', fontSize: '13px', cursor: 'pointer' }}>
               최신글 보기 →
-            </a>
+            </button>
           </div>
 
           {/* 오른쪽 캐러셀 */}
-          {featuredArticles.length > 0 && (
+          {!isMobile && featuredArticles.length > 0 && (
             <div style={{
               position: 'relative',
               width: '100%',
               height: '300px',
-              overflow: 'hidden',
               borderRadius: '12px',
+              overflow: 'hidden',
               border: '0.5px solid rgba(255,255,255,0.08)',
-              flexShrink: 0,
             }}>
               <Carousel articles={featuredArticles} />
             </div>
           )}
         </div>
-      </div>
+      </section>
 
       {/* 글 목록 */}
       <div id="articles" style={{ maxWidth: '1100px', margin: '0 auto', padding: isMobile ? '32px 16px 64px' : '56px 40px 80px' }}>
@@ -258,11 +241,13 @@ function Carousel({ articles }: { articles: HomeArticle[] }) {
             src={article.coverImage}
             alt={article.title}
             style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
               width: '100%',
               height: '100%',
               objectFit: 'cover',
               objectPosition: 'center',
-              display: 'block',
               opacity: fading ? 0 : 1,
               transition: 'opacity 0.6s ease',
             }}
