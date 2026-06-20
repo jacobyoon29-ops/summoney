@@ -75,7 +75,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
       {/* 헤더 */}
       <header style={{
         background: '#1c1a17',
-        padding: '0 40px',
+        padding: isMobile ? '0 20px' : '0 40px',
         height: '60px',
         display: 'flex',
         justifyContent: 'space-between',
@@ -84,7 +84,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
         top: 0,
         zIndex: 100,
       }}>
-        <Link href="/" style={{ color: '#fff', fontSize: '30px', fontWeight: 800, textDecoration: 'none', letterSpacing: '-0.03em' }}>
+        <Link href="/" style={{ color: '#fff', fontSize: isMobile ? '28px' : '30px', fontWeight: 800, textDecoration: 'none', letterSpacing: '-0.03em' }}>
           줍줍줍
         </Link>
         {!isMobile && (
@@ -106,11 +106,13 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
         <div style={{
           maxWidth: '1100px',
           margin: '0 auto',
-          padding: isMobile ? '48px 24px' : '64px 40px',
+          padding: isMobile ? '48px 20px' : '64px 40px',
+          paddingRight: isMobile ? '20px' : '80px',
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
           gap: '48px',
           alignItems: 'center',
+          textAlign: isMobile ? 'center' : 'left',
         }}>
           {/* 왼쪽 텍스트 */}
           <div>
