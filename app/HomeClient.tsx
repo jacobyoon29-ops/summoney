@@ -116,15 +116,15 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
       {/* 히어로 */}
       <div style={{
         backgroundColor: '#1c1a17',
-        padding: isMobile ? '96px 20px 48px' : '100px 40px 64px',
+        padding: isMobile ? '96px 20px 40px' : '100px 40px 40px',
         display: 'flex',
         flexDirection: isMobile ? 'column' : 'row',
         alignItems: 'center',
-        gap: isMobile ? '32px' : '60px',
-        minHeight: isMobile ? 'auto' : '480px',
+        gap: isMobile ? '32px' : '48px',
+        minHeight: isMobile ? 'auto' : 'auto',
       }}>
         {/* 왼쪽 텍스트 */}
-        <div style={{ flex: '0 0 auto', maxWidth: isMobile ? '100%' : '420px' }}>
+        <div style={{ flex: '1.2', minWidth: 0, maxWidth: isMobile ? '100%' : undefined }}>
           <p style={{ color: '#c8a96e', fontSize: '11px', fontWeight: 700, letterSpacing: '5px', marginBottom: '20px' }}>
             JUPJUPJUP
           </p>
@@ -157,6 +157,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
             <Carousel articles={featuredArticles} />
           </div>
         )}
+
       </div>
 
       {/* 글 목록 */}
@@ -238,7 +239,7 @@ function Carousel({ articles }: { articles: HomeArticle[] }) {
   const article = articles[current];
 
   return (
-    <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', height: '360px', backgroundColor: '#2e2b26' }}>
+    <div style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', height: '280px', backgroundColor: '#2e2b26' }}>
       {/* 이미지 */}
       {article.coverImage ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -248,7 +249,7 @@ function Carousel({ articles }: { articles: HomeArticle[] }) {
           style={{
             position: 'absolute', inset: 0,
             width: '100%', height: '100%',
-            objectFit: 'cover', objectPosition: 'center',
+            objectFit: 'cover', objectPosition: 'center top',
             opacity: fading ? 0 : 1,
             transition: 'opacity 0.6s ease',
           }}
