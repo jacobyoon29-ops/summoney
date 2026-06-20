@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ScrollProgressBar from './ScrollProgressBar';
 import type { SiteSettings } from '@/lib/supabase';
@@ -31,9 +32,24 @@ const CATEGORY_TEXT: Record<string, string> = {
 };
 
 export default function HomeClient({ articles, siteSettings }: { articles: HomeArticle[]; siteSettings: SiteSettings }) {
+  const router = useRouter();
   const [headerVisible, setHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+
+  const clickCount = useRef(0);
+  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSecretClick = useCallback(() => {
+    clickCount.current += 1;
+    if (clickTimer.current) clearTimeout(clickTimer.current);
+    if (clickCount.current >= 5) {
+      clickCount.current = 0;
+      router.push('/admin');
+      return;
+    }
+    clickTimer.current = setTimeout(() => { clickCount.current = 0; }, 3000);
+  }, [router]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -141,7 +157,9 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
       {/* 푸터 */}
       <footer style={{ borderTop: '1px solid #f0f0f0', padding: '32px 20px 40px', backgroundColor: '#fafafa' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto', color: '#999', fontSize: '12px', lineHeight: 1.9 }}>
-          <p style={{ margin: '0 0 4px', fontWeight: 700, color: '#bbb' }}>{siteSettings.company_name}</p>
+          <p style={{ margin: '0 0 4px', fontWeight: 700, color: '#bbb' }}>
+            <span onClick={handleSecretClick} style={{ cursor: 'default', userSelect: 'none' }}>{siteSettings.company_name}</span>
+          </p>
           <p style={{ margin: 0 }}>
             대표 {siteSettings.owner_name} | 사업자등록번호 {siteSettings.business_number}
             {siteSettings.customer_service ? ` | 고객센터 ${siteSettings.customer_service}` : ''}
