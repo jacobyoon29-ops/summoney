@@ -113,7 +113,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
           textAlign: isMobile ? 'center' : 'left',
         }}>
           {/* 왼쪽 텍스트 */}
-          <div>
+          <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
             <p style={{ color: '#c8a96e', fontSize: '11px', letterSpacing: '5px', marginBottom: '20px' }}>JUPJUPJUP</p>
             <h1 style={{ color: '#fff', fontSize: isMobile ? '36px' : '52px', fontWeight: 900, lineHeight: 1.2, letterSpacing: '-2px', marginBottom: '14px' }}>
               알면 더 재밌는<br />것들을 줍줍줍
@@ -121,7 +121,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
             <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '15px', marginBottom: '32px' }}>
               장르 불문, 세상 모든 이야기
             </p>
-            <div style={{ width: '40px', height: '1px', backgroundColor: '#c8a96e', marginBottom: '28px' }} />
+            <div style={{ width: '40px', height: '1px', backgroundColor: '#c8a96e', margin: isMobile ? '0 auto 28px' : '0 0 28px' }} />
             <button
               onClick={() => document.getElementById('articles')?.scrollIntoView({ behavior: 'smooth' })}
               style={{ border: '0.5px solid rgba(255,255,255,0.2)', borderRadius: '8px', padding: '10px 20px', color: 'rgba(255,255,255,0.7)', background: 'transparent', fontSize: '13px', cursor: 'pointer' }}
