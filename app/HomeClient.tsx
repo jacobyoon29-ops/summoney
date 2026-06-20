@@ -96,7 +96,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
         transform: headerVisible ? 'translateY(0)' : 'translateY(-100%)',
         transition: 'transform 0.3s ease',
       }}>
-        <Link href="/" style={{ color: '#f5f0e8', fontSize: isMobile ? '22px' : '26px', fontWeight: 800, letterSpacing: '-0.03em', textDecoration: 'none' }}>
+        <Link href="/" style={{ color: '#f5f0e8', fontSize: isMobile ? '28px' : '36px', fontWeight: 800, letterSpacing: '-0.03em', textDecoration: 'none' }}>
           줍줍줍
         </Link>
         {!isMobile && (
