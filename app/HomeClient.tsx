@@ -40,8 +40,6 @@ const CATEGORY_BG: Record<string, string> = {
 const PAGE_SIZE = 9;
 
 export default function HomeClient({ articles, siteSettings }: { articles: HomeArticle[]; siteSettings: SiteSettings }) {
-  const [headerVisible, setHeaderVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
@@ -66,20 +64,9 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const y = window.scrollY;
-      setHeaderVisible(y < lastScrollY || y < 50);
-      setLastScrollY(y);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
-
   const featuredArticles = articles.filter((a) => a.isFeatured && a.slug);
-  const listArticles = articles;
-  const visibleArticles = listArticles.slice(0, visibleCount);
-  const hasMore = visibleCount < listArticles.length;
+  const visibleArticles = articles.slice(0, visibleCount);
+  const hasMore = visibleCount < articles.length;
 
   return (
     <div style={{ backgroundColor: '#f8f7f4', minHeight: '100vh', fontFamily: '"Pretendard", "Apple SD Gothic Neo", sans-serif' }}>
@@ -87,21 +74,22 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
 
       {/* 헤더 */}
       <header style={{
-        position: 'fixed', top: '16px', left: 0, right: 0,
-        backgroundColor: '#1c1a17',
-        borderBottom: '1px solid #2e2b26',
-        padding: isMobile ? '0 20px' : '0 40px',
-        height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        zIndex: 1000,
-        transform: headerVisible ? 'translateY(0)' : 'translateY(-100%)',
-        transition: 'transform 0.3s ease',
+        background: '#1c1a17',
+        padding: '0 40px',
+        height: '60px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
       }}>
-        <Link href="/" style={{ color: '#f5f0e8', fontSize: isMobile ? '28px' : '36px', fontWeight: 800, letterSpacing: '-0.03em', textDecoration: 'none' }}>
+        <Link href="/" style={{ color: '#fff', fontSize: '30px', fontWeight: 800, textDecoration: 'none', letterSpacing: '-0.03em' }}>
           줍줍줍
         </Link>
         {!isMobile && (
           <nav style={{ display: 'flex', gap: '8px' }}>
-            {['비즈니스', '트렌드', 'ESG', '재테크', '브랜드'].map(cat => (
+            {['비즈니스', '트렌드', 'ESG', '재테크', '브랜드'].map((cat) => (
               <span key={cat} style={{
                 backgroundColor: CATEGORY_COLORS[cat],
                 color: CATEGORY_TEXT[cat],
@@ -114,40 +102,37 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
       </header>
 
       {/* 히어로 */}
-      <section style={{ backgroundColor: '#1c1a17', padding: '0 40px' }}>
+      <section style={{ background: '#1c1a17' }}>
         <div style={{
-          maxWidth: '1200px',
+          maxWidth: '1100px',
           margin: '0 auto',
-          padding: '60px 40px',
+          padding: isMobile ? '48px 24px' : '64px 40px',
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-          gap: '40px',
+          gap: '48px',
           alignItems: 'center',
         }}>
           {/* 왼쪽 텍스트 */}
           <div>
-            <p style={{ color: '#c8a96e', fontSize: '11px', letterSpacing: '5px', marginBottom: '16px' }}>JUPJUPJUP</p>
-            <h1 style={{ color: '#fff', fontSize: isMobile ? '36px' : '56px', fontWeight: '900', lineHeight: '1.2', letterSpacing: '-2px', marginBottom: '12px' }}>
+            <p style={{ color: '#c8a96e', fontSize: '11px', letterSpacing: '5px', marginBottom: '20px' }}>JUPJUPJUP</p>
+            <h1 style={{ color: '#fff', fontSize: isMobile ? '36px' : '52px', fontWeight: 900, lineHeight: 1.2, letterSpacing: '-2px', marginBottom: '14px' }}>
               알면 더 재밌는<br />것들을 줍줍줍
             </h1>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px', letterSpacing: '1px', marginBottom: '32px' }}>장르 불문, 세상 모든 이야기</p>
+            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '15px', marginBottom: '32px' }}>
+              장르 불문, 세상 모든 이야기
+            </p>
             <div style={{ width: '40px', height: '1px', backgroundColor: '#c8a96e', marginBottom: '28px' }} />
-            <button style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '0.5px solid rgba(255,255,255,0.15)', borderRadius: '8px', padding: '10px 20px', color: 'rgba(255,255,255,0.7)', fontSize: '13px', cursor: 'pointer' }}>
+            <button
+              onClick={() => document.getElementById('articles')?.scrollIntoView({ behavior: 'smooth' })}
+              style={{ border: '0.5px solid rgba(255,255,255,0.2)', borderRadius: '8px', padding: '10px 20px', color: 'rgba(255,255,255,0.7)', background: 'transparent', fontSize: '13px', cursor: 'pointer' }}
+            >
               최신글 보기 →
             </button>
           </div>
 
           {/* 오른쪽 캐러셀 */}
           {!isMobile && featuredArticles.length > 0 && (
-            <div style={{
-              position: 'relative',
-              width: '100%',
-              maxWidth: '500px',
-              height: '300px',
-              borderRadius: '12px',
-              overflow: 'hidden',
-              border: '0.5px solid rgba(255,255,255,0.08)',
-            }}>
+            <div style={{ width: '100%', height: '320px', borderRadius: '14px', overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
               <Carousel articles={featuredArticles} />
             </div>
           )}
@@ -155,37 +140,39 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
       </section>
 
       {/* 글 목록 */}
-      <div id="articles" style={{ maxWidth: '1100px', margin: '0 auto', padding: isMobile ? '32px 16px 64px' : '56px 40px 80px' }}>
-        {listArticles.length === 0 ? (
-          <p style={{ textAlign: 'center', color: '#bbb', padding: '60px 0' }}>아직 발행된 글이 없어요.</p>
-        ) : (
-          <>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-              gap: isMobile ? '16px' : '24px',
-            }}>
-              {visibleArticles.map((article, i) => (
-                <ArticleCard key={i} article={article} isMobile={isMobile} />
-              ))}
-            </div>
-            {hasMore && (
-              <div style={{ textAlign: 'center', marginTop: '40px' }}>
-                <button
-                  onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
-                  style={{
-                    padding: '12px 32px', fontSize: '14px', fontWeight: 600,
-                    color: '#1c1a17', backgroundColor: 'transparent',
-                    border: '1.5px solid #1c1a17', borderRadius: '8px', cursor: 'pointer',
-                  }}
-                >
-                  더보기
-                </button>
+      <section id="articles" style={{ background: '#f8f7f4' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: isMobile ? '32px 16px 64px' : '48px 40px' }}>
+          {articles.length === 0 ? (
+            <p style={{ textAlign: 'center', color: '#bbb', padding: '60px 0' }}>아직 발행된 글이 없어요.</p>
+          ) : (
+            <>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+                gap: '20px',
+              }}>
+                {visibleArticles.map((article, i) => (
+                  <ArticleCard key={i} article={article} isMobile={isMobile} />
+                ))}
               </div>
-            )}
-          </>
-        )}
-      </div>
+              {hasMore && (
+                <div style={{ textAlign: 'center', marginTop: '32px' }}>
+                  <button
+                    onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
+                    style={{
+                      border: '1px solid #1c1a17', borderRadius: '8px',
+                      padding: '12px 32px', background: 'transparent',
+                      color: '#1c1a17', fontSize: '14px', cursor: 'pointer',
+                    }}
+                  >
+                    더보기
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </section>
 
       {/* 푸터 */}
       <footer style={{ borderTop: '1px solid #ece9e3', padding: '32px 20px 40px', backgroundColor: '#f0ede8' }}>
@@ -210,19 +197,14 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
 /* ── 캐러셀 컴포넌트 ── */
 function Carousel({ articles }: { articles: HomeArticle[] }) {
   const [current, setCurrent] = useState(0);
-  const [fading, setFading] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const goTo = useCallback((idx: number) => {
-    setFading(true);
-    setTimeout(() => {
-      setCurrent(idx);
-      setFading(false);
-    }, 300);
+    setCurrent(idx);
   }, []);
 
-  const next = useCallback(() => goTo((current + 1) % articles.length), [current, articles.length, goTo]);
-  const prev = useCallback(() => goTo((current - 1 + articles.length) % articles.length), [current, articles.length, goTo]);
+  const next = useCallback(() => setCurrent((c) => (c + 1) % articles.length), [articles.length]);
+  const prev = useCallback(() => setCurrent((c) => (c - 1 + articles.length) % articles.length), [articles.length]);
 
   useEffect(() => {
     if (articles.length <= 1) return;
@@ -230,66 +212,47 @@ function Carousel({ articles }: { articles: HomeArticle[] }) {
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, [current, next, articles.length]);
 
-  const article = articles[current];
-
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      {/* 슬라이드 */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}>
-        {article.coverImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={article.coverImage}
-            alt={article.title}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center',
-              opacity: fading ? 0 : 1,
-              transition: 'opacity 0.6s ease',
-            }}
-          />
-        ) : (
-          <div style={{
-            width: '100%', height: '100%',
-            backgroundColor: CATEGORY_BG[article.category] ?? '#2e2b26',
-            opacity: fading ? 0 : 1,
+      {articles.map((article, i) => (
+        <div
+          key={i}
+          style={{
+            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+            opacity: i === current ? 1 : 0,
             transition: 'opacity 0.6s ease',
-          }} />
-        )}
-      </div>
+          }}
+        >
+          {article.coverImage ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={article.coverImage}
+              alt={article.title}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }}
+            />
+          ) : (
+            <div style={{ width: '100%', height: '100%', backgroundColor: CATEGORY_BG[article.category] ?? '#2e2b26' }} />
+          )}
+          {/* 오버레이 */}
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 16px 16px', background: 'linear-gradient(transparent, rgba(0,0,0,0.85))' }}>
+            <span style={{
+              fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px',
+              backgroundColor: CATEGORY_COLORS[article.category] ?? '#eee',
+              color: CATEGORY_TEXT[article.category] ?? '#333',
+              display: 'inline-block', marginBottom: '6px',
+            }}>
+              {article.category}
+            </span>
+            <Link href={`/article/${article.slug}`} style={{ textDecoration: 'none' }}>
+              <p style={{ color: '#fff', fontSize: '16px', fontWeight: 800, lineHeight: 1.4, margin: 0, letterSpacing: '-0.02em' }}>
+                {article.title}
+              </p>
+            </Link>
+          </div>
+        </div>
+      ))}
 
-      {/* 오버레이 */}
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0,
-        padding: '12px 16px',
-        background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
-        opacity: fading ? 0 : 1, transition: 'opacity 0.6s ease',
-      }}>
-        <span style={{
-          fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px',
-          backgroundColor: CATEGORY_COLORS[article.category] ?? '#eee',
-          color: CATEGORY_TEXT[article.category] ?? '#333',
-          display: 'inline-block', marginBottom: '6px',
-        }}>
-          {article.category}
-        </span>
-        {article.slug ? (
-          <Link href={`/article/${article.slug}`} style={{ textDecoration: 'none' }}>
-            <p style={{ color: '#fff', fontSize: '16px', fontWeight: 800, lineHeight: 1.4, margin: 0, letterSpacing: '-0.02em' }}>
-              {article.title}
-            </p>
-          </Link>
-        ) : (
-          <p style={{ color: '#fff', fontSize: '16px', fontWeight: 800, lineHeight: 1.4, margin: 0 }}>{article.title}</p>
-        )}
-      </div>
-
-      {/* 좌우 화살표 */}
+      {/* 화살표 */}
       {articles.length > 1 && (
         <>
           <button onClick={prev} style={arrowStyle('left')}>‹</button>
@@ -297,15 +260,15 @@ function Carousel({ articles }: { articles: HomeArticle[] }) {
         </>
       )}
 
-      {/* 하단 dot */}
+      {/* dot */}
       {articles.length > 1 && (
-        <div style={{ position: 'absolute', bottom: '12px', right: '12px', display: 'flex', gap: '6px' }}>
+        <div style={{ position: 'absolute', bottom: '12px', right: '12px', display: 'flex', gap: '6px', zIndex: 3 }}>
           {articles.map((_, i) => (
             <button
               key={i}
               onClick={() => goTo(i)}
               style={{
-                width: i === current ? '20px' : '6px', height: '6px',
+                width: i === current ? '16px' : '6px', height: '6px',
                 borderRadius: '3px', border: 'none', padding: 0, cursor: 'pointer',
                 backgroundColor: i === current ? '#c8a96e' : 'rgba(255,255,255,0.4)',
                 transition: 'all 0.3s ease',
@@ -324,8 +287,7 @@ function arrowStyle(side: 'left' | 'right'): React.CSSProperties {
     [side]: '10px',
     background: 'rgba(0,0,0,0.4)', border: 'none', borderRadius: '50%',
     width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    color: '#fff', fontSize: '20px', cursor: 'pointer', zIndex: 2,
-    lineHeight: 1,
+    color: '#fff', fontSize: '20px', cursor: 'pointer', zIndex: 2, lineHeight: 1,
   };
 }
 
@@ -338,30 +300,34 @@ function ArticleCard({ article, isMobile }: { article: HomeArticle; isMobile: bo
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        backgroundColor: '#fff', borderRadius: '16px', overflow: 'hidden',
+        background: '#fff',
+        borderRadius: '12px',
+        overflow: 'hidden',
+        border: '0.5px solid #e8e4de',
         cursor: 'pointer',
-        border: hovered ? '1px solid #ddd' : '1px solid #ece9e3',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease',
-        transform: hovered && !isMobile ? 'translateY(-6px)' : 'translateY(0)',
-        boxShadow: hovered ? '0 16px 40px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.04)',
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        transform: hovered && !isMobile ? 'translateY(-4px)' : 'translateY(0)',
+        boxShadow: hovered ? '0 12px 32px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.04)',
       }}
     >
-      <div style={{
-        height: isMobile ? '120px' : '160px',
-        backgroundColor: CATEGORY_BG[article.category] || '#f8f8f8',
-        backgroundImage: article.coverImage ? `url(${article.coverImage})` : undefined,
-        backgroundSize: 'cover', backgroundPosition: 'center',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        filter: hovered ? 'brightness(0.95)' : 'brightness(1)',
-        transition: 'filter 0.3s ease',
-      }}>
-        {!article.coverImage && (
+      {/* 이미지 */}
+      <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: CATEGORY_BG[article.category] ?? '#f8f8f8', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {article.coverImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={article.coverImage}
+            alt={article.title}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        ) : (
           <span style={{ fontSize: '13px', color: '#bbb', letterSpacing: '0.12em', fontWeight: 600 }}>
             {article.category.toUpperCase()}
           </span>
         )}
       </div>
-      <div style={{ padding: isMobile ? '16px' : '20px' }}>
+
+      {/* 카드 바디 */}
+      <div style={{ padding: '14px 16px 16px' }}>
         <span style={{
           fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '20px',
           backgroundColor: CATEGORY_COLORS[article.category],
@@ -370,16 +336,14 @@ function ArticleCard({ article, isMobile }: { article: HomeArticle; isMobile: bo
           {article.category}
         </span>
         <h2 style={{
-          fontSize: isMobile ? '15px' : '16px', fontWeight: 700,
-          margin: '10px 0 8px', lineHeight: 1.5, color: hovered ? '#c8a96e' : '#111',
+          fontSize: '15px', fontWeight: 700,
+          margin: '10px 0 6px', lineHeight: 1.5, color: hovered ? '#c8a96e' : '#111',
           letterSpacing: '-0.02em', transition: 'color 0.2s ease',
+          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
         }}>
           {article.title}
         </h2>
-        <p style={{ fontSize: '13px', color: '#777', lineHeight: 1.6, marginBottom: '16px' }}>
-          {article.summary}
-        </p>
-        <p style={{ fontSize: '12px', color: '#bbb' }}>{article.date}</p>
+        <p style={{ fontSize: '12px', color: '#bbb', margin: 0 }}>{article.date}</p>
       </div>
     </div>
   );
