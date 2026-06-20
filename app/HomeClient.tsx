@@ -114,13 +114,13 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
       </header>
 
       {/* 히어로 */}
-      <div style={{ backgroundColor: '#1c1a17', overflow: 'hidden' }}>
+      <div style={{ backgroundColor: '#1c1a17', overflow: 'hidden', padding: '0 40px' }}>
         <div style={{
           display: isMobile ? 'flex' : 'grid',
           flexDirection: isMobile ? 'column' : undefined,
           gridTemplateColumns: isMobile ? undefined : '1.2fr 1fr',
           gap: '32px',
-          padding: isMobile ? '96px 20px 40px' : '48px 40px',
+          padding: isMobile ? '60px 0px' : '48px 0px',
           alignItems: 'center',
           maxWidth: '1200px',
           margin: '0 auto',
@@ -131,7 +131,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
               JUPJUPJUP
             </p>
             <h1 style={{
-              color: '#fff', fontSize: isMobile ? '28px' : '44px', fontWeight: 800,
+              color: '#fff', fontSize: isMobile ? '32px' : '52px', fontWeight: 900,
               lineHeight: 1.25, letterSpacing: '-0.03em', marginBottom: '16px',
             }}>
               알면 더 재밌는<br />것들을 줍줍줍
