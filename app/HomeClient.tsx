@@ -108,13 +108,13 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
         borderBottom: '1px solid #f0f0f0'
       }}>
         <p style={{ color: '#FF6B6B', fontSize: '13px', fontWeight: '700', letterSpacing: '0.1em', marginBottom: '16px' }}>
-          줍줍줍
+          JUPJUPJUP
         </p>
         <h1 style={{ color: '#111', fontSize: isMobile ? '26px' : '38px', fontWeight: '800', lineHeight: '1.4', marginBottom: '16px', letterSpacing: '-0.03em' }}>
-          세상 모든 트렌드의<br />돈 되는 면만 골라드립니다
+          알면 더 재밌는 것들을 줍줍줍
         </h1>
         <p style={{ color: '#888', fontSize: isMobile ? '14px' : '16px' }}>
-          비즈니스 · 트렌드 · ESG · 재테크 · 브랜드
+          장르 불문, 세상 모든 이야기
         </p>
       </div>
 
