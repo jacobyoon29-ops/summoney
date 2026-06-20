@@ -9,10 +9,12 @@ export default function ArticleActions({
   articleId,
   viewCount,
   starCount,
+  readingTime,
 }: {
   articleId: string;
   viewCount: number;
   starCount: number;
+  readingTime: number;
 }) {
   const [stars, setStars] = useState(starCount);
   const [starred, setStarred] = useState(false);
@@ -44,12 +46,20 @@ export default function ArticleActions({
         display: 'flex',
         alignItems: 'center',
         gap: '16px',
-        marginBottom: '32px',
+        padding: '12px 0',
+        borderTop: '1px solid #eee',
+        marginTop: '16px',
+        marginBottom: '24px',
       }}
     >
+      {/* 읽기시간 */}
+      <span style={{ fontSize: '14px', color: '#555', fontWeight: 500 }}>
+        약 {readingTime}분 읽기
+      </span>
+
       {/* 조회수 */}
-      <span style={{ fontSize: '13px', color: '#bbb', display: 'flex', alignItems: 'center', gap: '4px' }}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <span style={{ fontSize: '15px', color: '#555', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
           <circle cx="12" cy="12" r="3" />
         </svg>
@@ -63,16 +73,15 @@ export default function ArticleActions({
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '5px',
-          padding: '6px 14px',
-          border: `1.5px solid ${starred ? GOLD : '#e0e0e0'}`,
-          borderRadius: '20px',
-          backgroundColor: starred ? '#fff9ee' : '#fff',
-          color: starred ? GOLD : '#aaa',
-          fontSize: '13px',
-          fontWeight: 700,
+          gap: '4px',
+          padding: 0,
+          border: 'none',
+          background: 'none',
+          color: starred ? GOLD : '#bbb',
+          fontSize: '15px',
+          fontWeight: 500,
           cursor: starred ? 'default' : 'pointer',
-          transition: 'all 0.2s',
+          transition: 'color 0.2s',
           fontFamily: 'inherit',
         }}
       >

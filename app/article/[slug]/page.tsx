@@ -185,9 +185,9 @@ export default async function ArticlePage({
             {article.summary}
           </p>
         )}
-        <div style={{ marginBottom: '16px' }}>
+        <div style={{ marginBottom: '8px' }}>
           <p style={{ color: '#bbb', fontSize: '13px', margin: '0 0 10px' }}>
-            {date} · 약 {readingTime}분 읽기
+            {date}
           </p>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <CopyLinkButton />
@@ -203,6 +203,7 @@ export default async function ArticlePage({
           articleId={article.id}
           viewCount={article.view_count ?? 0}
           starCount={article.star_count ?? 0}
+          readingTime={readingTime}
         />
 
         {/* 커버 이미지 */}
