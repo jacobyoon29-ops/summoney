@@ -89,9 +89,9 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
             <nav style={{ display: 'flex', gap: '8px' }}>
               {['다른나라 줍줍줍', '경제 줍줍줍', '사람 줍줍줍'].map((cat) => (
                 <span key={cat} style={{
-                  backgroundColor: 'rgba(200, 169, 110, 0.15)',
-                  color: '#c8a96e',
-                  border: '1px solid rgba(200, 169, 110, 0.4)',
+                  backgroundColor: 'rgba(200, 169, 110, 0.2)',
+                  color: '#e8c97e',
+                  border: '1px solid rgba(200, 169, 110, 0.7)',
                   borderRadius: '20px',
                   padding: '4px 12px',
                   fontSize: '13px',
