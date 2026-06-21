@@ -15,25 +15,19 @@ export type HomeArticle = {
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
-  '비즈니스': '#FF6B6B',
-  '트렌드': '#4ECDC4',
-  'ESG': '#45B7D1',
-  '재테크': '#96CEB4',
-  '브랜드': '#FFEAA7',
+  '다른나라 줍줍줍': '#3B82F6',
+  '경제 줍줍줍': '#10B981',
+  '사람 줍줍줍': '#F59E0B',
 };
 const CATEGORY_TEXT: Record<string, string> = {
-  '비즈니스': '#fff',
-  '트렌드': '#fff',
-  'ESG': '#fff',
-  '재테크': '#2d6a4f',
-  '브랜드': '#7d6608',
+  '다른나라 줍줍줍': '#fff',
+  '경제 줍줍줍': '#fff',
+  '사람 줍줍줍': '#fff',
 };
 const CATEGORY_BG: Record<string, string> = {
-  '비즈니스': '#fff0f0',
-  '트렌드': '#f0fafa',
-  'ESG': '#f0f8ff',
-  '재테크': '#f0fff4',
-  '브랜드': '#fffdf0',
+  '다른나라 줍줍줍': '#eff6ff',
+  '경제 줍줍줍': '#ecfdf5',
+  '사람 줍줍줍': '#fffbeb',
 };
 
 const PAGE_SIZE = 9;
@@ -93,7 +87,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
           </Link>
           {!isMobile && (
             <nav style={{ display: 'flex', gap: '8px' }}>
-              {['비즈니스', '트렌드', 'ESG', '재테크', '브랜드'].map((cat) => (
+              {['다른나라 줍줍줍', '경제 줍줍줍', '사람 줍줍줍'].map((cat) => (
                 <span key={cat} style={{
                   backgroundColor: CATEGORY_COLORS[cat],
                   color: CATEGORY_TEXT[cat],

@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   const client = new Anthropic({ apiKey });
 
   const prompt = `당신은 "줍줍줍(Summoney)"의 SEO 전문 에디터입니다.
-줍줍줍는 비즈니스·트렌드·ESG·재테크 분야의 한국어 미디어입니다.
+줍줍줍는 다른나라·경제·사람 줍줍줍 분야의 한국어 미디어입니다.
 
 아래 기사 본문을 분석해 다음 4가지를 JSON으로만 응답하세요. JSON 외 다른 텍스트는 절대 출력하지 마세요.
 

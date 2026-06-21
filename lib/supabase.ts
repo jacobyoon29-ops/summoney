@@ -18,7 +18,7 @@ export const supabase = new Proxy({} as SupabaseClient, {
 });
 
 // 글에 사용하는 카테고리 (홈페이지와 동일하게 유지)
-export const CATEGORIES = ['비즈니스', '트렌드', 'ESG', '재테크', '브랜드'] as const;
+export const CATEGORIES = ['다른나라 줍줍줍', '경제 줍줍줍', '사람 줍줍줍'] as const;
 export type Category = (typeof CATEGORIES)[number];
 
 // 커버 이미지를 올리는 Storage 버킷 이름

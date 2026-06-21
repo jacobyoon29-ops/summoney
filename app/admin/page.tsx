@@ -4,18 +4,14 @@ import DeleteButton from './DeleteButton';
 import FeaturedButton from './FeaturedButton';
 
 const CATEGORY_COLORS: Record<string, string> = {
-  비즈니스: '#FF6B6B',
-  트렌드: '#4ECDC4',
-  ESG: '#45B7D1',
-  재테크: '#96CEB4',
-  브랜드: '#FFEAA7',
+  '다른나라 줍줍줍': '#3B82F6',
+  '경제 줍줍줍': '#10B981',
+  '사람 줍줍줍': '#F59E0B',
 };
 const CATEGORY_TEXT: Record<string, string> = {
-  비즈니스: '#fff',
-  트렌드: '#fff',
-  ESG: '#fff',
-  재테크: '#2d6a4f',
-  브랜드: '#7d6608',
+  '다른나라 줍줍줍': '#fff',
+  '경제 줍줍줍': '#fff',
+  '사람 줍줍줍': '#fff',
 };
 
 function formatDate(iso: string): string {
