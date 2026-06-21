@@ -73,30 +73,36 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
       {/* 헤더 */}
       <header style={{
         background: '#1c1a17',
-        padding: isMobile ? '0 20px' : '0 40px',
         height: '60px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
         position: 'sticky',
         top: 0,
         zIndex: 100,
       }}>
-        <Link href="/" style={{ color: '#fff', fontSize: isMobile ? '32px' : '36px', fontWeight: 800, textDecoration: 'none', letterSpacing: '-0.03em' }}>
-          줍줍줍
-        </Link>
-        {!isMobile && (
-          <nav style={{ display: 'flex', gap: '8px' }}>
-            {['비즈니스', '트렌드', 'ESG', '재테크', '브랜드'].map((cat) => (
-              <span key={cat} style={{
-                backgroundColor: CATEGORY_COLORS[cat],
-                color: CATEGORY_TEXT[cat],
-                fontSize: '12px', fontWeight: 700,
-                padding: '4px 10px', borderRadius: '20px', cursor: 'pointer',
-              }}>{cat}</span>
-            ))}
-          </nav>
-        )}
+        <div style={{
+          maxWidth: '1100px',
+          margin: '0 auto',
+          padding: isMobile ? '0 20px' : '0 40px',
+          height: '100%',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <Link href="/" style={{ color: '#fff', fontSize: isMobile ? '32px' : '36px', fontWeight: 800, textDecoration: 'none', letterSpacing: '-0.03em' }}>
+            줍줍줍
+          </Link>
+          {!isMobile && (
+            <nav style={{ display: 'flex', gap: '8px' }}>
+              {['비즈니스', '트렌드', 'ESG', '재테크', '브랜드'].map((cat) => (
+                <span key={cat} style={{
+                  backgroundColor: CATEGORY_COLORS[cat],
+                  color: CATEGORY_TEXT[cat],
+                  fontSize: '12px', fontWeight: 700,
+                  padding: '4px 10px', borderRadius: '20px', cursor: 'pointer',
+                }}>{cat}</span>
+              ))}
+            </nav>
+          )}
+        </div>
       </header>
 
       {/* 히어로 */}
