@@ -307,11 +307,11 @@ function ArticleCard({ article, isMobile }: { article: HomeArticle; isMobile: bo
         background: '#ffffff',
         borderRadius: '12px',
         overflow: 'hidden',
-        border: '1px solid #c8c2ba',
+        border: '1px solid #b8b2aa',
         cursor: 'pointer',
         transition: 'transform 0.2s ease, box-shadow 0.2s ease',
         transform: hovered && !isMobile ? 'translateY(-4px)' : 'translateY(0)',
-        boxShadow: hovered ? '0 12px 32px rgba(0,0,0,0.10)' : '0 2px 12px rgba(0,0,0,0.12)',
+        boxShadow: hovered ? '0 12px 32px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.15)',
       }}
     >
       {/* 이미지 */}
@@ -321,7 +321,7 @@ function ArticleCard({ article, isMobile }: { article: HomeArticle; isMobile: bo
           <img
             src={article.coverImage}
             alt={article.title}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: hovered ? 'grayscale(0%)' : 'grayscale(100%)', transition: 'filter 0.3s ease' }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           />
         ) : (
           <span style={{ fontSize: '13px', color: '#bbb', letterSpacing: '0.12em', fontWeight: 600 }}>
@@ -347,7 +347,7 @@ function ArticleCard({ article, isMobile }: { article: HomeArticle; isMobile: bo
         }}>
           {article.title}
         </h2>
-        <p style={{ fontSize: '12px', color: '#bbb', margin: 0 }}>{article.date}</p>
+        <p style={{ fontSize: '12px', color: '#555', margin: 0 }}>{article.date}</p>
       </div>
     </div>
   );
