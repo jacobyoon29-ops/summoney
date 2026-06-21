@@ -104,8 +104,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
         <div style={{
           maxWidth: '1100px',
           margin: '0 auto',
-          padding: isMobile ? '48px 20px' : '64px 40px',
-          paddingRight: isMobile ? '20px' : '80px',
+          padding: isMobile ? '48px 20px' : '64px 40px 64px 40px',
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
           gap: '48px',
@@ -132,7 +131,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
 
           {/* 오른쪽 캐러셀 */}
           {!isMobile && featuredArticles.length > 0 && (
-            <div style={{ width: '100%', height: '320px', borderRadius: '14px', overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
+            <div style={{ width: '100%', maxWidth: '520px', height: '320px', borderRadius: '14px', overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
               <Carousel articles={featuredArticles} />
             </div>
           )}
