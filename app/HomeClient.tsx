@@ -81,6 +81,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
         <div style={{
           maxWidth: '1100px',
           margin: '0 auto',
+          width: '100%',
           padding: isMobile ? '0 20px' : '0 40px',
           height: '100%',
           display: 'flex',
