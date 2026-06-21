@@ -82,7 +82,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
         top: 0,
         zIndex: 100,
       }}>
-        <Link href="/" style={{ color: '#fff', fontSize: isMobile ? '28px' : '30px', fontWeight: 800, textDecoration: 'none', letterSpacing: '-0.03em' }}>
+        <Link href="/" style={{ color: '#fff', fontSize: isMobile ? '32px' : '36px', fontWeight: 800, textDecoration: 'none', letterSpacing: '-0.03em' }}>
           줍줍줍
         </Link>
         {!isMobile && (
@@ -114,10 +114,10 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
           {/* 왼쪽 텍스트 */}
           <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
             <p style={{ color: '#c8a96e', fontSize: '11px', letterSpacing: '5px', marginBottom: '20px' }}>JUPJUPJUP</p>
-            <h1 style={{ color: '#fff', fontSize: isMobile ? '36px' : '52px', fontWeight: 900, lineHeight: 1.2, letterSpacing: '-2px', marginBottom: '14px' }}>
+            <h1 style={{ color: '#fff', fontSize: isMobile ? '48px' : '68px', fontWeight: 900, lineHeight: 1.2, letterSpacing: '-2px', marginBottom: '14px' }}>
               알면 더 재밌는<br />것들을 줍줍줍
             </h1>
-            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '15px', marginBottom: '32px' }}>
+            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '18px', marginBottom: '32px' }}>
               장르 불문, 세상 모든 이야기
             </p>
             <div style={{ width: '40px', height: '1px', backgroundColor: '#c8a96e', margin: isMobile ? '0 auto 28px' : '0 0 28px' }} />
