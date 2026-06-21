@@ -304,18 +304,18 @@ function ArticleCard({ article, isMobile }: { article: HomeArticle; isMobile: bo
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: '#fff',
+        background: '#ffffff',
         borderRadius: '12px',
         overflow: 'hidden',
-        border: '1px solid #e5e7eb',
+        border: '1px solid #c8c2ba',
         cursor: 'pointer',
         transition: 'transform 0.2s ease, box-shadow 0.2s ease',
         transform: hovered && !isMobile ? 'translateY(-4px)' : 'translateY(0)',
-        boxShadow: hovered ? '0 12px 32px rgba(0,0,0,0.10)' : '0 1px 4px rgba(0,0,0,0.08)',
+        boxShadow: hovered ? '0 12px 32px rgba(0,0,0,0.10)' : '0 2px 12px rgba(0,0,0,0.12)',
       }}
     >
       {/* 이미지 */}
-      <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: CATEGORY_BG[article.category] ?? '#f8f8f8', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: CATEGORY_BG[article.category] ?? '#f8f8f8', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #e5e0d8' }}>
         {article.coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
