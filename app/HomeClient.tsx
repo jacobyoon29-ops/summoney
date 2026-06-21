@@ -307,11 +307,11 @@ function ArticleCard({ article, isMobile }: { article: HomeArticle; isMobile: bo
         background: '#fff',
         borderRadius: '12px',
         overflow: 'hidden',
-        border: '0.5px solid #e8e4de',
+        border: '1px solid #e5e7eb',
         cursor: 'pointer',
         transition: 'transform 0.2s ease, box-shadow 0.2s ease',
         transform: hovered && !isMobile ? 'translateY(-4px)' : 'translateY(0)',
-        boxShadow: hovered ? '0 12px 32px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.04)',
+        boxShadow: hovered ? '0 12px 32px rgba(0,0,0,0.10)' : '0 1px 4px rgba(0,0,0,0.08)',
       }}
     >
       {/* 이미지 */}
@@ -331,7 +331,7 @@ function ArticleCard({ article, isMobile }: { article: HomeArticle; isMobile: bo
       </div>
 
       {/* 카드 바디 */}
-      <div style={{ padding: '14px 16px 16px' }}>
+      <div style={{ padding: '16px', background: '#ffffff' }}>
         <span style={{
           fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '20px',
           backgroundColor: CATEGORY_COLORS[article.category],
