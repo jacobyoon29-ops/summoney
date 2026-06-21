@@ -315,7 +315,7 @@ function ArticleCard({ article, isMobile }: { article: HomeArticle; isMobile: bo
       }}
     >
       {/* 이미지 */}
-      <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: CATEGORY_BG[article.category] ?? '#f8f8f8', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #e5e0d8' }}>
+      <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: CATEGORY_BG[article.category] ?? '#f8f8f8', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '2px solid #111' }}>
         {article.coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -333,15 +333,15 @@ function ArticleCard({ article, isMobile }: { article: HomeArticle; isMobile: bo
       {/* 카드 바디 */}
       <div style={{ padding: '16px', background: '#ffffff' }}>
         <span style={{
-          fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '20px',
-          backgroundColor: CATEGORY_COLORS[article.category],
-          color: CATEGORY_TEXT[article.category],
+          fontSize: '12px', fontWeight: hovered ? 700 : 400,
+          color: hovered ? '#111' : '#888',
+          transition: 'color 0.2s ease, font-weight 0.2s ease',
         }}>
           {article.category}
         </span>
         <h2 style={{
           fontSize: '15px', fontWeight: 700,
-          margin: '10px 0 6px', lineHeight: 1.5, color: hovered ? '#c8a96e' : '#111',
+          margin: '10px 0 6px', lineHeight: 1.5, color: '#111',
           letterSpacing: '-0.02em', transition: 'color 0.2s ease',
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
         }}>
