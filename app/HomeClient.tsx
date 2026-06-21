@@ -321,7 +321,7 @@ function ArticleCard({ article, isMobile }: { article: HomeArticle; isMobile: bo
           <img
             src={article.coverImage}
             alt={article.title}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', filter: hovered ? 'grayscale(0%)' : 'grayscale(100%)', transition: 'filter 0.3s ease' }}
           />
         ) : (
           <span style={{ fontSize: '13px', color: '#bbb', letterSpacing: '0.12em', fontWeight: 600 }}>
