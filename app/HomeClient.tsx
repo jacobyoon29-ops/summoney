@@ -315,7 +315,7 @@ function ArticleCard({ article, isMobile }: { article: HomeArticle; isMobile: bo
       }}
     >
       {/* 이미지 */}
-      <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: CATEGORY_BG[article.category] ?? '#f8f8f8', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '2px solid #111' }}>
+      <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: CATEGORY_BG[article.category] ?? '#f8f8f8', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #d1ccc4' }}>
         {article.coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
