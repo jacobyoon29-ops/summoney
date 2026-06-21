@@ -108,19 +108,19 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
           display: 'grid',
           gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
           gap: '48px',
-          alignItems: 'center',
-          textAlign: isMobile ? 'center' : 'left',
+          alignItems: 'flex-start',
+          textAlign: 'left',
         }}>
           {/* 왼쪽 텍스트 */}
-          <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
+          <div style={{ textAlign: 'left' }}>
             <p style={{ color: '#c8a96e', fontSize: '11px', letterSpacing: '5px', marginBottom: '20px' }}>JUPJUPJUP</p>
-            <h1 style={{ color: '#fff', fontSize: isMobile ? '48px' : '68px', fontWeight: 900, lineHeight: 1.2, letterSpacing: '-2px', marginBottom: '14px' }}>
+            <h1 style={{ color: '#fff', fontSize: isMobile ? '52px' : '72px', fontWeight: 900, lineHeight: 1.2, letterSpacing: '-2px', marginBottom: '14px' }}>
               알면 더 재밌는<br />것들을 줍줍줍
             </h1>
             <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '18px', marginBottom: '32px' }}>
               장르 불문, 세상 모든 이야기
             </p>
-            <div style={{ width: '40px', height: '1px', backgroundColor: '#c8a96e', margin: isMobile ? '0 auto 28px' : '0 0 28px' }} />
+            <div style={{ width: '40px', height: '1px', backgroundColor: '#c8a96e', margin: '0 0 28px' }} />
             <button
               onClick={() => document.getElementById('articles')?.scrollIntoView({ behavior: 'smooth' })}
               style={{ border: '0.5px solid rgba(255,255,255,0.2)', borderRadius: '8px', padding: '10px 20px', color: 'rgba(255,255,255,0.7)', background: 'transparent', fontSize: '13px', cursor: 'pointer' }}
