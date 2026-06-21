@@ -307,11 +307,11 @@ function ArticleCard({ article, isMobile }: { article: HomeArticle; isMobile: bo
         background: '#ffffff',
         borderRadius: '12px',
         overflow: 'hidden',
-        border: '1px solid #b8b2aa',
+        border: '2px solid #c8c2b8',
         cursor: 'pointer',
         transition: 'transform 0.2s ease, box-shadow 0.2s ease',
         transform: hovered && !isMobile ? 'translateY(-4px)' : 'translateY(0)',
-        boxShadow: hovered ? '0 12px 32px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.15)',
+        boxShadow: hovered ? '0 12px 32px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.12)',
       }}
     >
       {/* 이미지 */}
