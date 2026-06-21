@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef } from 'react';
 
-const APP_KEY = 'c06b27a2320bba7ab68559a89822f945';
+const APP_KEY = 'c0b6b6f20e63b2e5ae73e7c80d748f2c';
 const SDK_SRC = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js';
 const SDK_INTEGRITY = 'sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4';
 
