@@ -148,7 +148,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
             </h1>
             <p
               className={mounted ? 'hero-fade-up' : ''}
-              style={{ color: 'rgba(255,255,255,0.7)', fontSize: '18px', marginBottom: '32px', animationDelay: '0.18s' }}
+              style={{ color: 'rgba(255,255,255,0.7)', fontSize: '18px', marginBottom: '32px', animationDelay: '0.5s' }}
             >
               장르 불문, 세상 모든 이야기
             </p>
@@ -165,7 +165,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
                 style={{ marginTop: '28px', color: 'rgba(255,255,255,0.5)', fontSize: '13px', animationDelay: '0.35s' }}
               >
                 지금까지{' '}
-                <span style={{ color: '#c8a96e', fontWeight: 700, fontSize: '16px' }}>{articleCount}</span>
+                <span style={{ color: '#c8a96e', fontWeight: 800, fontSize: '18px', display: 'inline-block' }}>{articleCount}</span>
                 개의 이야기를 줍줍했어요
               </p>
             )}
