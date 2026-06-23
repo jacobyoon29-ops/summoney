@@ -166,7 +166,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
               >
                 지금까지{' '}
                 <span style={{ color: '#c8a96e', fontWeight: 800, fontSize: '18px', display: 'inline-block' }}>{articleCount}</span>
-                개의 이야기를 줍줍했어요
+                개의 이야기를 줍줍줍했어요
               </p>
             )}
           </div>
