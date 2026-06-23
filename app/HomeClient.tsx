@@ -32,9 +32,28 @@ const CATEGORY_BG: Record<string, string> = {
 
 const PAGE_SIZE = 9;
 
+function useCountUp(target: number, duration = 1200) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (target === 0) return;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.round(eased * target));
+      if (progress < 1) requestAnimationFrame(tick);
+    };
+    const raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return count;
+}
+
 export default function HomeClient({ articles, siteSettings }: { articles: HomeArticle[]; siteSettings: SiteSettings }) {
   const [isMobile, setIsMobile] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [mounted, setMounted] = useState(false);
+  const articleCount = useCountUp(mounted ? articles.length : 0, 1000);
 
   // 어드민 숨김 접근
   const clickCount = useRef(0);
@@ -56,6 +75,8 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => { setMounted(true); }, []);
 
   const featuredArticles = articles.filter((a) => a.isFeatured && a.slug);
   const visibleArticles = articles.slice(0, visibleCount);
@@ -119,10 +140,16 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
           {/* 왼쪽 텍스트 */}
           <div style={{ textAlign: 'left' }}>
             <p style={{ color: '#c8a96e', fontSize: '11px', letterSpacing: '5px', marginBottom: '20px' }}>JUPJUPJUP</p>
-            <h1 style={{ color: '#fff', fontSize: isMobile ? '52px' : '72px', fontWeight: 900, lineHeight: 1.2, letterSpacing: '-2px', marginBottom: '14px' }}>
+            <h1
+              className={mounted ? 'hero-fade-up' : ''}
+              style={{ color: '#fff', fontSize: isMobile ? '52px' : '72px', fontWeight: 900, lineHeight: 1.2, letterSpacing: '-2px', marginBottom: '14px', animationDelay: '0s' }}
+            >
               알면 더 재밌는<br />것들을 줍줍줍
             </h1>
-            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '18px', marginBottom: '32px' }}>
+            <p
+              className={mounted ? 'hero-fade-up' : ''}
+              style={{ color: 'rgba(255,255,255,0.7)', fontSize: '18px', marginBottom: '32px', animationDelay: '0.18s' }}
+            >
               장르 불문, 세상 모든 이야기
             </p>
             <div style={{ width: '40px', height: '1px', backgroundColor: '#c8a96e', margin: '0 0 28px' }} />
@@ -132,6 +159,16 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
             >
               최신글 보기 →
             </button>
+            {articles.length > 0 && (
+              <p
+                className={mounted ? 'hero-fade-up' : ''}
+                style={{ marginTop: '28px', color: 'rgba(255,255,255,0.5)', fontSize: '13px', animationDelay: '0.35s' }}
+              >
+                지금까지{' '}
+                <span style={{ color: '#c8a96e', fontWeight: 700, fontSize: '16px' }}>{articleCount}</span>
+                개의 이야기를 줍줍했어요
+              </p>
+            )}
           </div>
 
           {/* 오른쪽 캐러셀 */}
