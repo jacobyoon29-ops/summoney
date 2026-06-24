@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic';
 
 function toHomeArticle(a: Article): HomeArticle {
   return {
+    id: a.id,
     category: a.category,
     title: a.title,
     summary: a.summary ?? '',
@@ -13,6 +14,8 @@ function toHomeArticle(a: Article): HomeArticle {
     coverImage: a.cover_image,
     slug: a.slug,
     isFeatured: a.is_featured ?? false,
+    viewCount: a.view_count,
+    createdAt: a.created_at,
   };
 }
 

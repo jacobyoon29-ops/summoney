@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { SiteSettings } from '@/lib/supabase';
 
 export type HomeArticle = {
+  id: string;
   category: string;
   title: string;
   summary: string;
@@ -12,6 +13,8 @@ export type HomeArticle = {
   coverImage: string | null;
   slug: string;
   isFeatured?: boolean;
+  viewCount: number;
+  createdAt: string;
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -193,7 +196,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
                 gap: '20px',
               }}>
                 {visibleArticles.map((article, i) => (
-                  <ArticleCard key={i} article={article} isMobile={isMobile} />
+                  <ArticleCard key={i} index={i} article={article} isMobile={isMobile} />
                 ))}
               </div>
               {hasMore && (
@@ -332,22 +335,65 @@ function arrowStyle(side: 'left' | 'right'): React.CSSProperties {
   };
 }
 
+/* ── 시드 기반 유틸 ── */
+function hashStr(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+function seededFloat(seed: number): number {
+  const x = Math.sin(seed + 1) * 10000;
+  return x - Math.floor(x);
+}
+
 /* ── 카드 컴포넌트 ── */
-function ArticleCard({ article, isMobile }: { article: HomeArticle; isMobile: boolean }) {
+function ArticleCard({ article, isMobile, index }: { article: HomeArticle; isMobile: boolean; index: number }) {
   const [hovered, setHovered] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // 스크롤 등장 애니메이션
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // 조회수/별점 부스팅 (시드 기반 고정)
+  const seed = hashStr(article.id);
+  const ageDays = (Date.now() - new Date(article.createdAt).getTime()) / 86400000;
+  const [offsetMin, offsetRange] = ageDays < 7 ? [50, 100] : ageDays < 30 ? [100, 200] : [200, 300];
+  const offset = Math.round(offsetMin + seededFloat(seed) * offsetRange);
+  const displayCount = article.viewCount + offset;
+  const starRatio = 0.03 + seededFloat(seed + 1) * 0.02;
+  const starCount = Math.round(displayCount * starRatio);
+
+  const transform = !visible
+    ? 'translateY(30px)'
+    : hovered && !isMobile
+    ? 'translateY(-4px)'
+    : 'translateY(0)';
 
   const card = (
     <div
+      ref={cardRef}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
+        position: 'relative',
         background: '#ffffff',
         borderRadius: '12px',
         overflow: 'hidden',
         border: '2px solid #c8c2b8',
         cursor: 'pointer',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        transform: hovered && !isMobile ? 'translateY(-4px)' : 'translateY(0)',
+        transition: `opacity 0.5s ease ${index * 0.1}s, transform 0.5s ease ${index * 0.1}s, box-shadow 0.2s ease`,
+        opacity: visible ? 1 : 0,
+        transform,
         boxShadow: hovered ? '0 12px 32px rgba(0,0,0,0.10)' : '0 2px 8px rgba(0,0,0,0.12)',
       }}
     >
@@ -367,6 +413,33 @@ function ArticleCard({ article, isMobile }: { article: HomeArticle; isMobile: bo
         )}
       </div>
 
+      {/* 호버 미리보기 오버레이 */}
+      {!isMobile && article.summary && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'linear-gradient(to top, rgba(20,18,14,0.95) 60%, rgba(20,18,14,0.7))',
+          display: 'flex', alignItems: 'flex-end',
+          padding: '16px',
+          opacity: hovered ? 1 : 0,
+          transform: hovered ? 'translateY(0)' : 'translateY(8px)',
+          transition: 'opacity 0.25s ease, transform 0.25s ease',
+          pointerEvents: 'none',
+        }}>
+          <p style={{
+            color: 'rgba(255,255,255,0.88)',
+            fontSize: '13px',
+            lineHeight: 1.65,
+            margin: 0,
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}>
+            {article.summary}
+          </p>
+        </div>
+      )}
+
       {/* 카드 바디 */}
       <div style={{ padding: '16px', background: '#ffffff' }}>
         <span style={{
@@ -384,7 +457,13 @@ function ArticleCard({ article, isMobile }: { article: HomeArticle; isMobile: bo
         }}>
           {article.title}
         </h2>
-        <p style={{ fontSize: '12px', color: '#555', margin: 0 }}>{article.date}</p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px' }}>
+          <p style={{ fontSize: '12px', color: '#555', margin: 0 }}>{article.date}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '11px', color: '#aaa' }}>👁 {displayCount.toLocaleString()}</span>
+            <span style={{ fontSize: '11px', color: '#c8a96e' }}>★ {starCount.toLocaleString()}</span>
+          </div>
+        </div>
       </div>
     </div>
   );
