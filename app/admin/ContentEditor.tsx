@@ -237,7 +237,7 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
         <Sep />
         <TB onClick={() => editor.chain().focus().setHorizontalRule().run()} title="구분선">—</TB>
         <div style={{ position: 'relative', flexShrink: 0 }}>
-          <TB onClick={() => { setColorOpen(v => !v); setGifPrompt(false); setYoutubePrompt(false); }} active={colorOpen} title="글씨 색상">
+          <TB onClick={() => { setColorOpen(v => !v); setYoutubePrompt(false); }} active={colorOpen} title="글씨 색상">
             <span style={{ fontWeight: 900, color: '#e53e3e', textDecoration: 'underline', textDecorationColor: '#e53e3e' }}>A</span>
           </TB>
           {colorOpen && (
@@ -278,7 +278,7 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
         </div>
         <TB onClick={() => fileInputRef.current?.click()} disabled={uploading || disabled} title="이미지 삽입">{uploading ? '⏳' : '🖼'}</TB>
         <TB onClick={() => gifInputRef.current?.click()} disabled={uploading || disabled} title="GIF 삽입">GIF</TB>
-        <TB onClick={() => { setYoutubePrompt(v => !v); setColorOpen(false); setGifPrompt(false); }} active={youtubePrompt} title="유튜브 임베드">▶</TB>
+        <TB onClick={() => { setYoutubePrompt(v => !v); setColorOpen(false); }} active={youtubePrompt} title="유튜브 임베드">▶</TB>
         <TB onClick={() => { setPbItems([{ label: '', value: 50 }]); setPbModal(true); }} active={pbModal} title="프로그레스 바">%</TB>
         <Sep />
         <TB onClick={() => editor.chain().focus().undo().run()} title="실행 취소">↩</TB>
