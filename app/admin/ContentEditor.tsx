@@ -6,8 +6,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Youtube from '@tiptap/extension-youtube';
 import Highlight from '@tiptap/extension-highlight';
-import Color from '@tiptap/extension-color';
-import TextStyle from '@tiptap/extension-text-style';
+import { Color, TextStyle } from '@tiptap/extension-text-style';
 import { useRef, useState, type CSSProperties } from 'react';
 
 const TEXT_COLORS = [
