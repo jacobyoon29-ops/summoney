@@ -6,7 +6,17 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Youtube from '@tiptap/extension-youtube';
 import Highlight from '@tiptap/extension-highlight';
+import Color from '@tiptap/extension-color';
+import TextStyle from '@tiptap/extension-text-style';
 import { useRef, useState, type CSSProperties } from 'react';
+
+const TEXT_COLORS = [
+  { label: '빨강', value: '#e53e3e' },
+  { label: '파랑', value: '#2b6cb0' },
+  { label: '골드', value: '#c8a96e' },
+  { label: '초록', value: '#276749' },
+  { label: '회색', value: '#718096' },
+];
 
 const HIGHLIGHT_YELLOW = '#FFF176';
 const HIGHLIGHT_SKY = '#B3E5FC';
@@ -122,6 +132,9 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
   const [uploading, setUploading] = useState(false);
   const [pbModal, setPbModal] = useState(false);
   const [pbItems, setPbItems] = useState<PbItem[]>([{ label: '', value: 50 }]);
+  const [colorOpen, setColorOpen] = useState(false);
+  const [gifPrompt, setGifPrompt] = useState(false);
+  const [gifUrl, setGifUrl] = useState('');
 
   const editor = useEditor({
     extensions: [
@@ -129,6 +142,8 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
       Image.configure({ inline: false, allowBase64: false }),
       Youtube.configure({ width: 640, height: 360, nocookie: true }),
       Highlight.configure({ multicolor: true }),
+      TextStyle,
+      Color,
       Pullquote,
       Callout,
       Vertquote,
@@ -222,8 +237,50 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
           <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '2px', background: HIGHLIGHT_SKY, border: '1px solid #4a9cc0' }} />
         </TB>
         <Sep />
+        <TB onClick={() => editor.chain().focus().setHorizontalRule().run()} title="구분선">—</TB>
+        <div style={{ position: 'relative', flexShrink: 0 }}>
+          <TB onClick={() => { setColorOpen(v => !v); setGifPrompt(false); setYoutubePrompt(false); }} active={colorOpen} title="글씨 색상">
+            <span style={{ fontWeight: 900, color: '#e53e3e', textDecoration: 'underline', textDecorationColor: '#e53e3e' }}>A</span>
+          </TB>
+          {colorOpen && (
+            <div style={{
+              position: 'absolute', top: '100%', left: 0, marginTop: '4px',
+              background: '#fff', border: '1px solid #ddd', borderRadius: '8px',
+              padding: '6px', display: 'flex', gap: '4px', zIndex: 200,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+            }}>
+              {TEXT_COLORS.map(({ label, value }) => (
+                <button
+                  key={value}
+                  type="button"
+                  title={label}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => { editor.chain().focus().setColor(value).run(); setColorOpen(false); }}
+                  style={{
+                    width: '20px', height: '20px', borderRadius: '4px',
+                    backgroundColor: value, border: '1.5px solid rgba(0,0,0,0.12)',
+                    cursor: 'pointer', padding: 0,
+                  }}
+                />
+              ))}
+              <button
+                type="button"
+                title="색상 제거"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => { editor.chain().focus().unsetColor().run(); setColorOpen(false); }}
+                style={{
+                  width: '20px', height: '20px', borderRadius: '4px',
+                  border: '1.5px solid #ddd', cursor: 'pointer', padding: 0,
+                  background: 'linear-gradient(135deg, #fff 45%, #e53e3e 45%, #e53e3e 55%, #fff 55%)',
+                  fontSize: '0',
+                }}
+              >제거</button>
+            </div>
+          )}
+        </div>
         <TB onClick={() => fileInputRef.current?.click()} disabled={uploading || disabled} title="이미지 삽입">{uploading ? '⏳' : '🖼'}</TB>
-        <TB onClick={() => setYoutubePrompt(v => !v)} active={youtubePrompt} title="유튜브 임베드">▶</TB>
+        <TB onClick={() => { setGifPrompt(v => !v); setColorOpen(false); setYoutubePrompt(false); }} active={gifPrompt} title="GIF 삽입">GIF</TB>
+        <TB onClick={() => { setYoutubePrompt(v => !v); setColorOpen(false); setGifPrompt(false); }} active={youtubePrompt} title="유튜브 임베드">▶</TB>
         <TB onClick={() => { setPbItems([{ label: '', value: 50 }]); setPbModal(true); }} active={pbModal} title="프로그레스 바">%</TB>
         <Sep />
         <TB onClick={() => editor.chain().focus().undo().run()} title="실행 취소">↩</TB>
@@ -272,6 +329,44 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
           >
             취소
           </button>
+        </div>
+      )}
+
+      {/* GIF URL 입력창 */}
+      {gifPrompt && (
+        <div style={{
+          display: 'flex', gap: '8px', padding: '8px 10px',
+          backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0',
+          borderBottom: 'none',
+        }}>
+          <input
+            type="url"
+            value={gifUrl}
+            onChange={(e) => setGifUrl(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && gifUrl.trim()) {
+                editor.chain().focus().setImage({ src: gifUrl.trim(), alt: 'GIF' }).run();
+                setGifUrl(''); setGifPrompt(false);
+              }
+            }}
+            placeholder="https://example.com/image.gif"
+            autoFocus
+            style={{ flex: 1, padding: '6px 10px', fontSize: '13px', border: '1px solid #e5e5e5', borderRadius: '6px', outline: 'none', fontFamily: 'inherit' }}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              if (!gifUrl.trim()) return;
+              editor.chain().focus().setImage({ src: gifUrl.trim(), alt: 'GIF' }).run();
+              setGifUrl(''); setGifPrompt(false);
+            }}
+            style={{ padding: '6px 14px', fontSize: '13px', fontWeight: 700, backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+          >삽입</button>
+          <button
+            type="button"
+            onClick={() => { setGifPrompt(false); setGifUrl(''); }}
+            style={{ padding: '6px 10px', fontSize: '13px', background: 'none', border: '1px solid #e5e5e5', borderRadius: '6px', cursor: 'pointer', color: '#888' }}
+          >취소</button>
         </div>
       )}
 
@@ -438,4 +533,5 @@ const editorStyles = `
   .tiptap div.callout > * { margin-bottom: 0.5em; }
   .tiptap div.callout > *:last-child { margin-bottom: 0; }
   .tiptap blockquote.vertquote { border-left: 4px solid #c8a96e; background: transparent; border-radius: 0; padding: 4px 16px; margin: 0 0 1.5em; color: #666; font-size: 15px; font-weight: 400; font-style: italic; line-height: 1.7; }
+  .tiptap hr { border: none; border-top: 2px solid #e5e5e5; margin: 1.5em 0; }
 `;
