@@ -126,14 +126,13 @@ interface Props {
 
 export default function ContentEditor({ value, onChange, disabled }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const gifInputRef = useRef<HTMLInputElement>(null);
   const [youtubePrompt, setYoutubePrompt] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [pbModal, setPbModal] = useState(false);
   const [pbItems, setPbItems] = useState<PbItem[]>([{ label: '', value: 50 }]);
   const [colorOpen, setColorOpen] = useState(false);
-  const [gifPrompt, setGifPrompt] = useState(false);
-  const [gifUrl, setGifUrl] = useState('');
 
   const editor = useEditor({
     extensions: [
@@ -278,7 +277,7 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
           )}
         </div>
         <TB onClick={() => fileInputRef.current?.click()} disabled={uploading || disabled} title="이미지 삽입">{uploading ? '⏳' : '🖼'}</TB>
-        <TB onClick={() => { setGifPrompt(v => !v); setColorOpen(false); setYoutubePrompt(false); }} active={gifPrompt} title="GIF 삽입">GIF</TB>
+        <TB onClick={() => gifInputRef.current?.click()} disabled={uploading || disabled} title="GIF 삽입">GIF</TB>
         <TB onClick={() => { setYoutubePrompt(v => !v); setColorOpen(false); setGifPrompt(false); }} active={youtubePrompt} title="유튜브 임베드">▶</TB>
         <TB onClick={() => { setPbItems([{ label: '', value: 50 }]); setPbModal(true); }} active={pbModal} title="프로그레스 바">%</TB>
         <Sep />
@@ -331,44 +330,6 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
         </div>
       )}
 
-      {/* GIF URL 입력창 */}
-      {gifPrompt && (
-        <div style={{
-          display: 'flex', gap: '8px', padding: '8px 10px',
-          backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0',
-          borderBottom: 'none',
-        }}>
-          <input
-            type="url"
-            value={gifUrl}
-            onChange={(e) => setGifUrl(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && gifUrl.trim()) {
-                editor.chain().focus().setImage({ src: gifUrl.trim(), alt: 'GIF' }).run();
-                setGifUrl(''); setGifPrompt(false);
-              }
-            }}
-            placeholder="https://example.com/image.gif"
-            autoFocus
-            style={{ flex: 1, padding: '6px 10px', fontSize: '13px', border: '1px solid #e5e5e5', borderRadius: '6px', outline: 'none', fontFamily: 'inherit' }}
-          />
-          <button
-            type="button"
-            onClick={() => {
-              if (!gifUrl.trim()) return;
-              editor.chain().focus().setImage({ src: gifUrl.trim(), alt: 'GIF' }).run();
-              setGifUrl(''); setGifPrompt(false);
-            }}
-            style={{ padding: '6px 14px', fontSize: '13px', fontWeight: 700, backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
-          >삽입</button>
-          <button
-            type="button"
-            onClick={() => { setGifPrompt(false); setGifUrl(''); }}
-            style={{ padding: '6px 10px', fontSize: '13px', background: 'none', border: '1px solid #e5e5e5', borderRadius: '6px', cursor: 'pointer', color: '#888' }}
-          >취소</button>
-        </div>
-      )}
-
       {/* 에디터 본체 */}
       <div
         onDrop={handleDrop}
@@ -390,6 +351,13 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
         ref={fileInputRef}
         type="file"
         accept="image/*,.gif"
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+      />
+      <input
+        ref={gifInputRef}
+        type="file"
+        accept=".gif,image/gif"
         style={{ display: 'none' }}
         onChange={handleFileChange}
       />
