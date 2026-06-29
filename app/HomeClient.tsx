@@ -417,7 +417,7 @@ function ArticleCard({ article, isMobile, index }: { article: HomeArticle; isMob
       {!isMobile && article.summary && (
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'linear-gradient(to top, rgba(20,18,14,0.75) 60%, rgba(20,18,14,0.3))',
+          background: 'linear-gradient(to top, rgba(20,18,14,0.5) 60%, rgba(20,18,14,0.15))',
           display: 'flex', alignItems: 'flex-end',
           padding: '16px',
           opacity: hovered ? 1 : 0,
