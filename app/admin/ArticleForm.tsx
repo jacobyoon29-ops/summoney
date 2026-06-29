@@ -152,17 +152,15 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
         body: JSON.stringify({ topic: aiArticleTopic }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setAiArticleQError(data.error ?? '질문 생성 실패');
-        return;
-      }
       const questions = Array.isArray(data.questions) ? data.questions : [];
-      setAiArticleQuestions(questions);
       if (questions.length > 0) {
+        setAiArticleQuestions(questions);
         navigator.clipboard.writeText(questions.join('\n'));
         setAiArticleQCopied(true);
         setAiArticleToast(true);
         setTimeout(() => setAiArticleToast(false), 2000);
+      } else {
+        setAiArticleQError(data.error ?? '질문 생성 실패');
       }
     } catch {
       setAiArticleQError('네트워크 오류가 발생했습니다.');
