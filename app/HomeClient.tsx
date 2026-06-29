@@ -145,7 +145,7 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
             <p style={{ color: '#c8a96e', fontSize: '11px', letterSpacing: '5px', marginBottom: '20px' }}>JUPJUPJUP</p>
             <h1
               className={mounted ? 'hero-fade-up' : ''}
-              style={{ color: '#fff', fontSize: isMobile ? '52px' : '72px', fontWeight: 900, lineHeight: 1.2, letterSpacing: '-2px', marginBottom: '14px', animationDelay: '0s' }}
+              style={{ color: '#fff', fontSize: isMobile ? '42px' : '58px', fontWeight: 900, lineHeight: 1.2, letterSpacing: '-2px', marginBottom: '14px', animationDelay: '0s' }}
             >
               알면 더 재밌는<br />것들을 줍줍줍
             </h1>
