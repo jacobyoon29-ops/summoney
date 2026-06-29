@@ -7,7 +7,9 @@ import Image from '@tiptap/extension-image';
 import Youtube from '@tiptap/extension-youtube';
 import Highlight from '@tiptap/extension-highlight';
 import { Color, TextStyle } from '@tiptap/extension-text-style';
-import { useRef, useState, type CSSProperties } from 'react';
+import { useRef, useState, useCallback, type CSSProperties } from 'react';
+
+type UnsplashPhoto = { id: string; urls: { small: string; regular: string }; alt_description: string | null; user: { name: string } };
 
 const TEXT_COLORS = [
   { label: '빨강', value: '#e53e3e' },
@@ -133,6 +135,11 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
   const [pbModal, setPbModal] = useState(false);
   const [pbItems, setPbItems] = useState<PbItem[]>([{ label: '', value: 50 }]);
   const [colorOpen, setColorOpen] = useState(false);
+  const [imgModal, setImgModal] = useState(false);
+  const [imgTab, setImgTab] = useState<'unsplash' | 'upload'>('unsplash');
+  const [unsplashQuery, setUnsplashQuery] = useState('');
+  const [unsplashResults, setUnsplashResults] = useState<UnsplashPhoto[]>([]);
+  const [unsplashLoading, setUnsplashLoading] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -153,6 +160,29 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
       onChange(editor.getHTML());
     },
   });
+
+  const searchUnsplash = useCallback(async () => {
+    if (!unsplashQuery.trim()) return;
+    setUnsplashLoading(true);
+    try {
+      const key = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
+      const res = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(unsplashQuery)}&per_page=12&client_id=${key}`);
+      const data = await res.json();
+      setUnsplashResults(data.results ?? []);
+    } catch {
+      setUnsplashResults([]);
+    } finally {
+      setUnsplashLoading(false);
+    }
+  }, [unsplashQuery]);
+
+  function insertUnsplashImage(photo: UnsplashPhoto) {
+    if (!editor) return;
+    editor.chain().focus().setImage({ src: photo.urls.regular, alt: photo.alt_description ?? photo.user.name }).run();
+    setImgModal(false);
+    setUnsplashResults([]);
+    setUnsplashQuery('');
+  }
 
   async function handleImageFile(file: File) {
     setUploading(true);
@@ -276,7 +306,7 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
             </div>
           )}
         </div>
-        <TB onClick={() => fileInputRef.current?.click()} disabled={uploading || disabled} title="이미지 삽입">{uploading ? '⏳' : '🖼'}</TB>
+        <TB onClick={() => { setImgModal(true); setImgTab('unsplash'); setColorOpen(false); setYoutubePrompt(false); }} disabled={uploading || disabled} title="이미지 삽입">{uploading ? '⏳' : '🖼'}</TB>
         <TB onClick={() => gifInputRef.current?.click()} disabled={uploading || disabled} title="GIF 삽입">GIF</TB>
         <TB onClick={() => { setYoutubePrompt(v => !v); setColorOpen(false); }} active={youtubePrompt} title="유튜브 임베드">▶</TB>
         <TB onClick={() => { setPbItems([{ label: '', value: 50 }]); setPbModal(true); }} active={pbModal} title="프로그레스 바">%</TB>
@@ -363,6 +393,82 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
       />
 
       <style>{editorStyles}</style>
+
+      {/* 이미지 삽입 모달 */}
+      {imgModal && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ backgroundColor: '#fff', borderRadius: '16px', padding: '24px', width: '640px', maxWidth: '95vw', maxHeight: '80vh', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 40px rgba(0,0,0,0.2)' }}>
+            {/* 헤더 */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#111' }}>🖼 이미지 삽입</h3>
+              <button type="button" onClick={() => { setImgModal(false); setUnsplashResults([]); setUnsplashQuery(''); }}
+                style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#aaa', lineHeight: 1 }}>×</button>
+            </div>
+
+            {/* 탭 */}
+            <div style={{ display: 'flex', gap: '4px', marginBottom: '16px', borderBottom: '1px solid #eee', paddingBottom: '0' }}>
+              {(['unsplash', 'upload'] as const).map((tab) => (
+                <button key={tab} type="button" onClick={() => setImgTab(tab)}
+                  style={{ padding: '6px 16px', fontSize: '13px', fontWeight: 600, border: 'none', borderBottom: imgTab === tab ? '2px solid #1c1a17' : '2px solid transparent', background: 'none', cursor: 'pointer', color: imgTab === tab ? '#111' : '#888', marginBottom: '-1px' }}>
+                  {tab === 'unsplash' ? 'Unsplash 검색' : '파일 업로드'}
+                </button>
+              ))}
+            </div>
+
+            {/* Unsplash 탭 */}
+            {imgTab === 'unsplash' && (
+              <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+                  <input
+                    type="text"
+                    value={unsplashQuery}
+                    onChange={(e) => setUnsplashQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && searchUnsplash()}
+                    placeholder="검색어를 입력하세요 (영문 권장)"
+                    autoFocus
+                    style={{ flex: 1, padding: '8px 12px', fontSize: '14px', border: '1.5px solid #e5e5e5', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
+                  />
+                  <button type="button" onClick={searchUnsplash} disabled={unsplashLoading}
+                    style={{ padding: '8px 18px', fontSize: '14px', fontWeight: 700, backgroundColor: '#1c1a17', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                    {unsplashLoading ? '검색 중…' : '검색'}
+                  </button>
+                </div>
+                <div style={{ overflowY: 'auto', flex: 1 }}>
+                  {unsplashResults.length === 0 && !unsplashLoading && (
+                    <p style={{ textAlign: 'center', color: '#bbb', padding: '32px 0', fontSize: '14px' }}>검색 결과가 여기에 표시됩니다</p>
+                  )}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                    {unsplashResults.map((photo) => (
+                      <div key={photo.id} onClick={() => insertUnsplashImage(photo)}
+                        style={{ aspectRatio: '4/3', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', position: 'relative', border: '2px solid transparent', transition: 'border-color 0.15s' }}
+                        onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#c8a96e')}
+                        onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'transparent')}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={photo.urls.small} alt={photo.alt_description ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '4px 6px', background: 'rgba(0,0,0,0.4)', fontSize: '10px', color: 'rgba(255,255,255,0.8)' }}>
+                          {photo.user.name}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 파일 업로드 탭 */}
+            {imgTab === 'upload' && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '12px', padding: '32px 0' }}>
+                <p style={{ color: '#888', fontSize: '14px', margin: 0 }}>이미지 파일을 선택하거나 에디터에 드래그&드롭하세요</p>
+                <button type="button"
+                  onClick={() => { fileInputRef.current?.click(); setImgModal(false); }}
+                  style={{ padding: '10px 28px', fontSize: '14px', fontWeight: 700, backgroundColor: '#1c1a17', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
+                  파일 선택
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 프로그레스 바 모달 */}
       {pbModal && (
