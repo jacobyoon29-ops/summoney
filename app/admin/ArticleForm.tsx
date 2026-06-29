@@ -126,6 +126,7 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
   const [aiArticleQLoading, setAiArticleQLoading] = useState(false);
   const [aiArticleQError, setAiArticleQError] = useState<string | null>(null);
   const [aiArticleQCopied, setAiArticleQCopied] = useState(false);
+  const [aiArticleToast, setAiArticleToast] = useState(false);
   const [aiArticleSource, setAiArticleSource] = useState('');
   const [aiArticleHooking, setAiArticleHooking] = useState<'external_observer' | 'number_reversal' | 'origin_story'>('external_observer');
   const [aiArticleDirection, setAiArticleDirection] = useState('');
@@ -155,7 +156,14 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
         setAiArticleQError(data.error ?? '질문 생성 실패');
         return;
       }
-      setAiArticleQuestions(Array.isArray(data.questions) ? data.questions : []);
+      const questions = Array.isArray(data.questions) ? data.questions : [];
+      setAiArticleQuestions(questions);
+      if (questions.length > 0) {
+        navigator.clipboard.writeText(questions.join('\n'));
+        setAiArticleQCopied(true);
+        setAiArticleToast(true);
+        setTimeout(() => setAiArticleToast(false), 2000);
+      }
     } catch {
       setAiArticleQError('네트워크 오류가 발생했습니다.');
     } finally {
@@ -724,8 +732,13 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
       </div>
       {/* AI 글 생성 모달 */}
       {aiArticleModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 3000, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
-          onClick={(e) => { if (e.target === e.currentTarget) setAiArticleModal(false); }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 3000, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          {/* 토스트 */}
+          {aiArticleToast && (
+            <div style={{ position: 'fixed', bottom: '32px', left: '50%', transform: 'translateX(-50%)', zIndex: 9999, backgroundColor: '#c8a96e', color: '#111', fontSize: '14px', fontWeight: 700, padding: '12px 20px', borderRadius: '12px', whiteSpace: 'nowrap', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
+              📋 질문이 복사됐어요! Liner나 유튜브에서 검색 후 소스를 붙여넣으세요
+            </div>
+          )}
           <div style={{ backgroundColor: '#1c1a17', border: '1px solid #333', borderRadius: '16px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {/* 헤더 */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
