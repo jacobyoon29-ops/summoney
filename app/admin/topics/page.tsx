@@ -10,6 +10,7 @@ interface Topic {
   viewCount: number;
   videoId: string;
   url: string;
+  reason: string;
 }
 
 const TABS: { label: string; value: Category }[] = [
@@ -161,15 +162,20 @@ export default function TopicsPage() {
                       color: '#f0e8d6',
                       fontSize: '15px',
                       fontWeight: 600,
-                      margin: '0 0 6px',
+                      margin: '0 0 4px',
                       lineHeight: 1.5,
                     }}
                   >
                     {topic.title}
                   </p>
-                  <p style={{ color: '#c8a96e', fontSize: '13px', fontWeight: 700, margin: 0 }}>
+                  <p style={{ color: '#c8a96e', fontSize: '13px', fontWeight: 700, margin: '0 0 6px' }}>
                     조회수 {formatViewCount(topic.viewCount)}
                   </p>
+                  {topic.reason && (
+                    <p style={{ color: '#888', fontSize: '12px', margin: 0, fontStyle: 'italic' }}>
+                      💡 {topic.reason}
+                    </p>
+                  )}
                 </div>
                 <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                   <a

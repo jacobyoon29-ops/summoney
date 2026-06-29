@@ -1,16 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import Anthropic from '@anthropic-ai/sdk';
 import { isAuthed } from '@/app/admin/auth';
 
 type Category = '다른나라' | '경제' | '사람';
-
-const KEYWORDS: Record<Category, string> = {
-  다른나라:
-    '일본 미국 유럽 싱가포르 북유럽 문화 신기한 외국인 충격 몰랐던 나라별 전통 축제 음식문화 법 금지 규칙 이민 생활 스포츠규칙 스포츠이변 올림픽 월드컵 이상한나라 세계기록 결혼문화 연애문화 하렘 일부다처 호화여행 럭셔리여행 호화열차 프라이빗제트 퍼스트클래스 호화크루즈 럭셔리호텔 부자여행 세계최고급 억만장자 부자들의생활',
-  경제:
-    '경제 비즈니스 기업 돈 창업 마케팅 브랜드 가격 다이소 명품 스타벅스 맥도날드 애플 닌텐도 레고 이케아 가격심리 매출 역대급',
-  사람:
-    '워런버핏 일론머스크 스티브잡스 젠슨황 샘올트먼 CEO 창업자 천재 부자 성공 인물 비하인드 일화 습관 어린시절 반전',
-};
 
 export async function POST(req: NextRequest) {
   if (!(await isAuthed())) {
@@ -18,25 +10,29 @@ export async function POST(req: NextRequest) {
   }
 
   const { category } = (await req.json()) as { category: Category };
-  if (!KEYWORDS[category]) {
+  if (!['다른나라', '경제', '사람'].includes(category)) {
     return NextResponse.json({ error: '유효하지 않은 카테고리입니다.' }, { status: 400 });
   }
 
-  const apiKey = process.env.YOUTUBE_API_KEY;
-  if (!apiKey) {
+  const youtubeKey = process.env.YOUTUBE_API_KEY;
+  if (!youtubeKey) {
     return NextResponse.json({ error: 'YOUTUBE_API_KEY 환경변수가 없습니다.' }, { status: 500 });
   }
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  if (!anthropicKey) {
+    return NextResponse.json({ error: 'ANTHROPIC_API_KEY 환경변수가 없습니다.' }, { status: 500 });
+  }
 
+  // 1. YouTube 인기 쇼츠 30개 검색 (키워드 없이)
   const searchParams = new URLSearchParams({
     part: 'snippet',
-    q: KEYWORDS[category],
     type: 'video',
     videoDuration: 'short',
     order: 'viewCount',
     regionCode: 'KR',
     relevanceLanguage: 'ko',
-    maxResults: '20',
-    key: apiKey,
+    maxResults: '30',
+    key: youtubeKey,
   });
 
   const searchRes = await fetch(
@@ -57,11 +53,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ topics: [] });
   }
 
+  // 2. 조회수 일괄 조회
   const videoIds = items.map((item) => item.id.videoId).join(',');
   const statsParams = new URLSearchParams({
     part: 'statistics',
     id: videoIds,
-    key: apiKey,
+    key: youtubeKey,
   });
 
   const statsRes = await fetch(
@@ -81,19 +78,60 @@ export async function POST(req: NextRequest) {
     statsMap[video.id] = parseInt(video.statistics?.viewCount ?? '0', 10);
   }
 
-  const topics = items
-    .map((item) => {
-      const videoId = item.id.videoId;
-      const viewCount = statsMap[videoId] ?? 0;
-      return {
-        title: item.snippet.title,
-        viewCount,
-        videoId,
-        url: `https://www.youtube.com/watch?v=${videoId}`,
-      };
-    })
+  // 3. 조회수 2만 이상 필터링
+  const filtered = items
+    .map((item) => ({
+      title: item.snippet.title,
+      viewCount: statsMap[item.id.videoId] ?? 0,
+      videoId: item.id.videoId,
+      url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+    }))
     .filter((t) => t.viewCount >= 20000)
     .sort((a, b) => b.viewCount - a.viewCount);
+
+  if (filtered.length === 0) {
+    return NextResponse.json({ topics: [] });
+  }
+
+  // 4. Claude가 줍줍줍 적합 소재 선별
+  const client = new Anthropic({ apiKey: anthropicKey });
+
+  const titlesJson = JSON.stringify(
+    filtered.map((t, i) => ({ index: i, title: t.title }))
+  );
+
+  const systemPrompt =
+    '너는 줍줍줍(jupjupjup.com) 콘텐츠 에디터야. 줍줍줍은 \'알면 더 재밌는 것들\'을 다루는 미디어야. 아래 유튜브 쇼츠 제목들 중 줍줍줍 소재로 적합한 것만 골라줘. 적합 기준: 세계문화/경제/인물/역사/과학/사회현상 등 \'몰랐던 사실\'이나 \'신기한 각도\'로 풀 수 있는 것. 제외 기준: 순수 게임/음악/먹방/연애/개인일상/유머. JSON 배열로만 응답해줘: [{"index": 0, "reason": "선택 이유 한 줄"}]';
+
+  const userPrompt = `카테고리: ${category}\n\n영상 목록:\n${titlesJson}`;
+
+  const message = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 1024,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userPrompt }],
+  });
+
+  const text =
+    message.content[0].type === 'text' ? message.content[0].text.trim() : '[]';
+  const jsonMatch = text.match(/\[[\s\S]*\]/);
+  if (!jsonMatch) {
+    return NextResponse.json({ topics: [] });
+  }
+
+  let selected: { index: number; reason: string }[] = [];
+  try {
+    selected = JSON.parse(jsonMatch[0]);
+  } catch {
+    return NextResponse.json({ topics: [] });
+  }
+
+  const topics = selected
+    .filter((s) => filtered[s.index] !== undefined)
+    .map((s) => ({
+      ...filtered[s.index],
+      reason: s.reason,
+    }));
 
   return NextResponse.json({ topics });
 }
