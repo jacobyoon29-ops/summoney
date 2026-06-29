@@ -4,14 +4,11 @@ import { isAuthed } from '@/app/admin/auth';
 
 type Category = '다른나라' | '경제' | '사람';
 
-function parseDurationSeconds(iso: string): number {
-  const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
-  if (!match) return Infinity;
-  const h = parseInt(match[1] ?? '0', 10);
-  const m = parseInt(match[2] ?? '0', 10);
-  const s = parseInt(match[3] ?? '0', 10);
-  return h * 3600 + m * 60 + s;
-}
+const KEYWORDS: Record<Category, string> = {
+  다른나라: '세계 문화 신기한 충격 몰랐던 이상한 역사 전통 여행 럭셔리 부자',
+  경제: '경제 기업 브랜드 마케팅 돈 창업 비즈니스 가격 매출',
+  사람: '인물 CEO 창업자 부자 성공 천재 비하인드 일화',
+};
 
 export async function POST(req: NextRequest) {
   if (!(await isAuthed())) {
@@ -19,7 +16,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { category } = (await req.json()) as { category: Category };
-  if (!['다른나라', '경제', '사람'].includes(category)) {
+  if (!KEYWORDS[category]) {
     return NextResponse.json({ error: '유효하지 않은 카테고리입니다.' }, { status: 400 });
   }
 
@@ -32,56 +29,82 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'ANTHROPIC_API_KEY 환경변수가 없습니다.' }, { status: 500 });
   }
 
-  // 1. 한국 인기 영상 50개 가져오기 (Videos: list chart=mostPopular)
-  const params = new URLSearchParams({
-    part: 'snippet,statistics,contentDetails',
-    chart: 'mostPopular',
+  // 1. YouTube Search API로 카테고리별 인기 쇼츠 30개 검색
+  const searchParams = new URLSearchParams({
+    part: 'snippet',
+    type: 'video',
+    videoDuration: 'short',
+    order: 'viewCount',
     regionCode: 'KR',
-    maxResults: '50',
-    videoCategoryId: '0',
+    relevanceLanguage: 'ko',
+    maxResults: '30',
+    q: KEYWORDS[category],
     key: youtubeKey,
   });
 
-  const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?${params}`);
-  const data = await res.json();
+  const searchRes = await fetch(
+    `https://www.googleapis.com/youtube/v3/search?${searchParams}`
+  );
+  const searchData = await searchRes.json();
 
-  if (!res.ok) {
+  if (!searchRes.ok) {
     return NextResponse.json(
-      { error: data.error?.message ?? 'YouTube API 실패' },
+      { error: searchData.error?.message ?? 'YouTube 검색 실패' },
       { status: 500 }
     );
   }
 
-  // 2. 쇼츠(60초 이하) + 조회수 2만 이상 필터링
-  const filtered = (data.items ?? [])
-    .filter((item: Record<string, unknown>) => {
-      const duration = (item.contentDetails as { duration?: string })?.duration ?? '';
-      const viewCount = parseInt(
-        ((item.statistics as { viewCount?: string })?.viewCount) ?? '0',
-        10
-      );
-      return parseDurationSeconds(duration) <= 60 && viewCount >= 20000;
-    })
-    .map((item: Record<string, unknown>) => ({
-      title: (item.snippet as { title?: string })?.title ?? '',
-      viewCount: parseInt(
-        ((item.statistics as { viewCount?: string })?.viewCount) ?? '0',
-        10
-      ),
-      videoId: item.id as string,
-      url: `https://www.youtube.com/watch?v=${item.id}`,
+  const items: { id: { videoId: string }; snippet: { title: string } }[] =
+    searchData.items ?? [];
+  if (items.length === 0) {
+    return NextResponse.json({ topics: [] });
+  }
+
+  // 2. videoId로 statistics 조회
+  const videoIds = items.map((item) => item.id.videoId).join(',');
+  const statsParams = new URLSearchParams({
+    part: 'statistics',
+    id: videoIds,
+    key: youtubeKey,
+  });
+
+  const statsRes = await fetch(
+    `https://www.googleapis.com/youtube/v3/videos?${statsParams}`
+  );
+  const statsData = await statsRes.json();
+
+  if (!statsRes.ok) {
+    return NextResponse.json(
+      { error: statsData.error?.message ?? '조회수 조회 실패' },
+      { status: 500 }
+    );
+  }
+
+  const statsMap: Record<string, number> = {};
+  for (const video of statsData.items ?? []) {
+    statsMap[video.id] = parseInt(video.statistics?.viewCount ?? '0', 10);
+  }
+
+  // 3. 조회수 2만 이상 필터링
+  const filtered = items
+    .map((item) => ({
+      title: item.snippet.title,
+      viewCount: statsMap[item.id.videoId] ?? 0,
+      videoId: item.id.videoId,
+      url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
     }))
-    .sort((a: { viewCount: number }, b: { viewCount: number }) => b.viewCount - a.viewCount);
+    .filter((t) => t.viewCount >= 20000)
+    .sort((a, b) => b.viewCount - a.viewCount);
 
   if (filtered.length === 0) {
     return NextResponse.json({ topics: [] });
   }
 
-  // 3. Claude가 줍줍줍 적합 소재 선별
+  // 4. Claude가 줍줍줍 적합 소재 선별
   const client = new Anthropic({ apiKey: anthropicKey });
 
   const titlesJson = JSON.stringify(
-    filtered.map((t: { title: string }, i: number) => ({ index: i, title: t.title }))
+    filtered.map((t, i) => ({ index: i, title: t.title }))
   );
 
   const systemPrompt =
