@@ -15,15 +15,20 @@ export default function AdminLogin() {
     setError(null);
     setPending(true);
 
-    const formData = new FormData();
-    formData.append('password', password);
-    const result = await login(formData);
+    try {
+      const formData = new FormData();
+      formData.append('password', password);
+      const result = await login(formData);
 
-    if (result.ok) {
-      // 쿠키가 설정됐으니 레이아웃을 다시 렌더해 관리자 화면을 보여준다.
-      router.refresh();
-    } else {
-      setError(result.error);
+      if (result.ok) {
+        // 쿠키가 설정됐으니 레이아웃을 다시 렌더해 관리자 화면을 보여준다.
+        router.refresh();
+      } else {
+        setError(result.error);
+      }
+    } catch {
+      setError('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    } finally {
       setPending(false);
     }
   }
