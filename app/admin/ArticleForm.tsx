@@ -119,6 +119,57 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiFilled, setAiFilled] = useState(false);
 
+  // AI 글 생성 모달
+  const [aiArticleModal, setAiArticleModal] = useState(false);
+  const [aiArticleSource, setAiArticleSource] = useState('');
+  const [aiArticleHooking, setAiArticleHooking] = useState<'external_observer' | 'number_reversal' | 'origin_story'>('external_observer');
+  const [aiArticleLoading, setAiArticleLoading] = useState(false);
+  const [aiArticleError, setAiArticleError] = useState<string | null>(null);
+  const [aiArticleTitles, setAiArticleTitles] = useState<string[]>([]);
+  const [aiArticleBody, setAiArticleBody] = useState('');
+  const [aiArticleSelectedTitle, setAiArticleSelectedTitle] = useState<string | null>(null);
+
+  async function handleAiArticleGenerate() {
+    if (!aiArticleSource.trim()) {
+      setAiArticleError('원본 소스를 입력해주세요.');
+      return;
+    }
+    setAiArticleLoading(true);
+    setAiArticleError(null);
+    setAiArticleTitles([]);
+    setAiArticleBody('');
+    setAiArticleSelectedTitle(null);
+    try {
+      const res = await fetch('/api/ai-article', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: aiArticleSource, category, hookingPattern: aiArticleHooking }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAiArticleError(data.error ?? 'AI 생성 실패');
+        return;
+      }
+      setAiArticleTitles(Array.isArray(data.titles) ? data.titles : []);
+      setAiArticleBody(data.body ?? '');
+    } catch {
+      setAiArticleError('네트워크 오류가 발생했습니다.');
+    } finally {
+      setAiArticleLoading(false);
+    }
+  }
+
+  function applyAiArticle() {
+    if (aiArticleSelectedTitle) setTitle(aiArticleSelectedTitle);
+    if (aiArticleBody) setContent(aiArticleBody);
+    setAiArticleModal(false);
+    setAiArticleSource('');
+    setAiArticleTitles([]);
+    setAiArticleBody('');
+    setAiArticleSelectedTitle(null);
+    setAiArticleError(null);
+  }
+
   function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
     setCoverFile(file);
@@ -308,32 +359,52 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
             />
           </div>
 
-          {/* ② 본문 + AI 자동생성 버튼 */}
+          {/* ② 본문 + AI 버튼들 */}
           <div style={fieldStyle}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
               <label style={labelStyle} htmlFor="content">본문</label>
-              <button
-                type="button"
-                onClick={handleAiGenerate}
-                disabled={busy || aiLoading}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                  padding: '8px 16px', fontSize: '13px', fontWeight: 700,
-                  color: '#fff',
-                  background: aiLoading
-                    ? 'linear-gradient(90deg,#a78bfa,#818cf8)'
-                    : 'linear-gradient(90deg,#7c3aed,#4f46e5)',
-                  border: 'none', borderRadius: '8px',
-                  cursor: aiLoading ? 'default' : 'pointer',
-                  whiteSpace: 'nowrap',
-                  boxShadow: aiLoading ? 'none' : '0 2px 8px rgba(124,58,237,0.3)',
-                  transition: 'all 0.2s',
-                }}
-              >
-                {aiLoading
-                  ? <><SpinIcon /> AI 분석 중...</>
-                  : <>✦ AI 자동완성</>}
-              </button>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => { setAiArticleModal(true); setAiArticleTitles([]); setAiArticleBody(''); setAiArticleSelectedTitle(null); setAiArticleError(null); }}
+                  disabled={busy}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    padding: '8px 16px', fontSize: '13px', fontWeight: 700,
+                    color: '#111',
+                    backgroundColor: '#c8a96e',
+                    border: 'none', borderRadius: '8px',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 8px rgba(200,169,110,0.35)',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  ✨ AI로 글 생성
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAiGenerate}
+                  disabled={busy || aiLoading}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    padding: '8px 16px', fontSize: '13px', fontWeight: 700,
+                    color: '#fff',
+                    background: aiLoading
+                      ? 'linear-gradient(90deg,#a78bfa,#818cf8)'
+                      : 'linear-gradient(90deg,#7c3aed,#4f46e5)',
+                    border: 'none', borderRadius: '8px',
+                    cursor: aiLoading ? 'default' : 'pointer',
+                    whiteSpace: 'nowrap',
+                    boxShadow: aiLoading ? 'none' : '0 2px 8px rgba(124,58,237,0.3)',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {aiLoading
+                    ? <><SpinIcon /> AI 분석 중...</>
+                    : <>✦ AI 자동완성</>}
+                </button>
+              </div>
             </div>
             <ContentEditor
               value={content}
@@ -612,6 +683,112 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
         )}
         </div>{/* end split-view */}
       </div>
+      {/* AI 글 생성 모달 */}
+      {aiArticleModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 3000, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+          onClick={(e) => { if (e.target === e.currentTarget) setAiArticleModal(false); }}>
+          <div style={{ backgroundColor: '#1c1a17', border: '1px solid #333', borderRadius: '16px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* 헤더 */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h2 style={{ color: '#c8a96e', fontSize: '20px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>✨ AI 글 생성</h2>
+              <button onClick={() => setAiArticleModal(false)} style={{ background: 'none', border: 'none', color: '#888', fontSize: '22px', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+            </div>
+
+            {/* 원본 소스 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ color: '#ccc', fontSize: '14px', fontWeight: 700 }}>원본 자료</label>
+              <textarea
+                value={aiArticleSource}
+                onChange={(e) => setAiArticleSource(e.target.value)}
+                placeholder="유튜브 스크립트, 기사, 메모 등 원본 자료를 붙여넣으세요"
+                rows={8}
+                style={{ backgroundColor: '#111', border: '1px solid #444', borderRadius: '10px', color: '#eee', fontSize: '14px', padding: '12px 14px', resize: 'vertical', fontFamily: 'inherit', outline: 'none', lineHeight: 1.6 }}
+              />
+            </div>
+
+            {/* 후킹 패턴 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <label style={{ color: '#ccc', fontSize: '14px', fontWeight: 700 }}>후킹 패턴</label>
+              {([
+                ['external_observer', '외부 관찰자 시점', '예: 일본인이 한국에서 자판기를 찾는다'],
+                ['number_reversal', '숫자 반전', '예: 줄었는데 매출은 늘었다'],
+                ['origin_story', '탄생 비화', '예: 비웃음을 받았던 햇반'],
+              ] as const).map(([value, label, example]) => (
+                <label key={value} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', padding: '12px', borderRadius: '10px', backgroundColor: aiArticleHooking === value ? '#2a2418' : 'transparent', border: `1px solid ${aiArticleHooking === value ? '#c8a96e' : '#333'}`, transition: 'all 0.15s' }}>
+                  <input
+                    type="radio"
+                    name="hooking"
+                    value={value}
+                    checked={aiArticleHooking === value}
+                    onChange={() => setAiArticleHooking(value)}
+                    style={{ marginTop: '2px', accentColor: '#c8a96e', flexShrink: 0 }}
+                  />
+                  <div>
+                    <div style={{ color: '#eee', fontSize: '14px', fontWeight: 700 }}>{label}</div>
+                    <div style={{ color: '#888', fontSize: '12px', marginTop: '2px' }}>{example}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
+
+            {/* 생성하기 버튼 */}
+            <button
+              type="button"
+              onClick={handleAiArticleGenerate}
+              disabled={aiArticleLoading}
+              style={{ padding: '14px', fontSize: '15px', fontWeight: 700, backgroundColor: aiArticleLoading ? '#555' : '#c8a96e', color: '#111', border: 'none', borderRadius: '10px', cursor: aiArticleLoading ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s' }}
+            >
+              {aiArticleLoading ? <><SpinIcon /><span style={{ color: '#111' }}>생성 중...</span></> : '생성하기'}
+            </button>
+
+            {/* 오류 */}
+            {aiArticleError && (
+              <p style={{ backgroundColor: '#2a0a0a', border: '1px solid #c0392b', color: '#ff8080', fontSize: '14px', fontWeight: 600, padding: '12px 14px', borderRadius: '10px', margin: 0 }}>
+                {aiArticleError}
+              </p>
+            )}
+
+            {/* 제목 선택 */}
+            {aiArticleTitles.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <label style={{ color: '#ccc', fontSize: '14px', fontWeight: 700 }}>제목 선택 (클릭해서 선택)</label>
+                {aiArticleTitles.map((t, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setAiArticleSelectedTitle(t)}
+                    style={{ textAlign: 'left', padding: '14px 16px', backgroundColor: aiArticleSelectedTitle === t ? '#2a2418' : '#111', border: `1.5px solid ${aiArticleSelectedTitle === t ? '#c8a96e' : '#444'}`, borderRadius: '10px', color: aiArticleSelectedTitle === t ? '#c8a96e' : '#ddd', fontSize: '15px', fontWeight: aiArticleSelectedTitle === t ? 700 : 500, cursor: 'pointer', transition: 'all 0.15s', lineHeight: 1.5 }}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* 본문 미리보기 */}
+            {aiArticleBody && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ color: '#ccc', fontSize: '14px', fontWeight: 700 }}>생성된 본문 미리보기</label>
+                <div style={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '10px', padding: '14px', color: '#bbb', fontSize: '14px', lineHeight: 1.8, whiteSpace: 'pre-wrap', maxHeight: '260px', overflowY: 'auto' }}>
+                  {aiArticleBody}
+                </div>
+              </div>
+            )}
+
+            {/* 에디터에 적용 */}
+            {aiArticleBody && (
+              <button
+                type="button"
+                onClick={applyAiArticle}
+                style={{ padding: '14px', fontSize: '15px', fontWeight: 700, backgroundColor: '#FF6B6B', color: '#fff', border: 'none', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s' }}
+              >
+                에디터에 적용{aiArticleSelectedTitle ? ` — "${aiArticleSelectedTitle.slice(0, 20)}${aiArticleSelectedTitle.length > 20 ? '…' : ''}"` : ' (제목 미선택)'}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
