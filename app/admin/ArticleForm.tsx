@@ -121,6 +121,11 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
 
   // AI 글 생성 모달
   const [aiArticleModal, setAiArticleModal] = useState(false);
+  const [aiArticleTopic, setAiArticleTopic] = useState('');
+  const [aiArticleQuestions, setAiArticleQuestions] = useState<string[]>([]);
+  const [aiArticleQLoading, setAiArticleQLoading] = useState(false);
+  const [aiArticleQError, setAiArticleQError] = useState<string | null>(null);
+  const [aiArticleQCopied, setAiArticleQCopied] = useState(false);
   const [aiArticleSource, setAiArticleSource] = useState('');
   const [aiArticleHooking, setAiArticleHooking] = useState<'external_observer' | 'number_reversal' | 'origin_story'>('external_observer');
   const [aiArticleDirection, setAiArticleDirection] = useState('');
@@ -129,6 +134,34 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
   const [aiArticleTitles, setAiArticleTitles] = useState<string[]>([]);
   const [aiArticleBody, setAiArticleBody] = useState('');
   const [aiArticleSelectedTitle, setAiArticleSelectedTitle] = useState<string | null>(null);
+
+  async function handleAiQuestionsGenerate() {
+    if (!aiArticleTopic.trim()) {
+      setAiArticleQError('주제를 입력해주세요.');
+      return;
+    }
+    setAiArticleQLoading(true);
+    setAiArticleQError(null);
+    setAiArticleQuestions([]);
+    setAiArticleQCopied(false);
+    try {
+      const res = await fetch('/api/ai-questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: aiArticleTopic }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAiArticleQError(data.error ?? '질문 생성 실패');
+        return;
+      }
+      setAiArticleQuestions(Array.isArray(data.questions) ? data.questions : []);
+    } catch {
+      setAiArticleQError('네트워크 오류가 발생했습니다.');
+    } finally {
+      setAiArticleQLoading(false);
+    }
+  }
 
   async function handleAiArticleGenerate() {
     if (!aiArticleSource.trim()) {
@@ -164,6 +197,10 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
     if (aiArticleSelectedTitle) setTitle(aiArticleSelectedTitle);
     if (aiArticleBody) setContent(aiArticleBody);
     setAiArticleModal(false);
+    setAiArticleTopic('');
+    setAiArticleQuestions([]);
+    setAiArticleQError(null);
+    setAiArticleQCopied(false);
     setAiArticleSource('');
     setAiArticleDirection('');
     setAiArticleTitles([]);
@@ -368,7 +405,7 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <button
                   type="button"
-                  onClick={() => { setAiArticleModal(true); setAiArticleDirection(''); setAiArticleTitles([]); setAiArticleBody(''); setAiArticleSelectedTitle(null); setAiArticleError(null); }}
+                  onClick={() => { setAiArticleModal(true); setAiArticleTopic(''); setAiArticleQuestions([]); setAiArticleQError(null); setAiArticleQCopied(false); setAiArticleSource(''); setAiArticleDirection(''); setAiArticleTitles([]); setAiArticleBody(''); setAiArticleSelectedTitle(null); setAiArticleError(null); }}
                   disabled={busy}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '6px',
@@ -696,9 +733,59 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
               <button onClick={() => setAiArticleModal(false)} style={{ background: 'none', border: 'none', color: '#888', fontSize: '22px', cursor: 'pointer', lineHeight: 1 }}>✕</button>
             </div>
 
-            {/* 원본 소스 */}
+            {/* Step 1: 주제 입력 → 리서치 질문 생성 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '16px', backgroundColor: '#111', borderRadius: '12px', border: '1px solid #2a2a2a' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#c8a96e', letterSpacing: '0.1em' }}>STEP 1 — 리서치 질문 생성 (선택사항)</div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  value={aiArticleTopic}
+                  onChange={(e) => setAiArticleTopic(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAiQuestionsGenerate(); } }}
+                  placeholder="예: 일본 자판기"
+                  style={{ flex: 1, backgroundColor: '#1c1a17', border: '1px solid #444', borderRadius: '8px', color: '#eee', fontSize: '14px', padding: '10px 12px', fontFamily: 'inherit', outline: 'none' }}
+                />
+                <button
+                  type="button"
+                  onClick={handleAiQuestionsGenerate}
+                  disabled={aiArticleQLoading}
+                  style={{ padding: '10px 16px', fontSize: '13px', fontWeight: 700, backgroundColor: aiArticleQLoading ? '#444' : '#2a2418', color: '#c8a96e', border: '1px solid #c8a96e', borderRadius: '8px', cursor: aiArticleQLoading ? 'default' : 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s' }}
+                >
+                  {aiArticleQLoading ? <SpinIcon /> : '질문 생성'}
+                </button>
+              </div>
+              {aiArticleQError && (
+                <p style={{ color: '#ff8080', fontSize: '13px', margin: 0 }}>{aiArticleQError}</p>
+              )}
+              {aiArticleQuestions.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#888', fontSize: '12px' }}>아래 질문을 검색해서 소스를 모아보세요</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(aiArticleQuestions.join('\n'));
+                        setAiArticleQCopied(true);
+                        setTimeout(() => setAiArticleQCopied(false), 2000);
+                      }}
+                      style={{ background: 'none', border: 'none', color: aiArticleQCopied ? '#c8a96e' : '#666', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      {aiArticleQCopied ? '✓ 복사됨' : '전체 복사'}
+                    </button>
+                  </div>
+                  {aiArticleQuestions.map((q, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '10px 12px', backgroundColor: '#1c1a17', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
+                      <span style={{ color: '#c8a96e', fontSize: '12px', fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>{i + 1}</span>
+                      <span style={{ color: '#ddd', fontSize: '13px', lineHeight: 1.55 }}>{q}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Step 2: 원본 소스 */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ color: '#ccc', fontSize: '14px', fontWeight: 700 }}>원본 자료</label>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#c8a96e', letterSpacing: '0.1em', marginBottom: '2px' }}>STEP 2 — 원본 자료 붙여넣기</div>
               <textarea
                 value={aiArticleSource}
                 onChange={(e) => setAiArticleSource(e.target.value)}
@@ -708,8 +795,9 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
               />
             </div>
 
-            {/* 후킹 패턴 */}
+            {/* Step 3: 후킹 패턴 */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#c8a96e', letterSpacing: '0.1em', marginBottom: '2px' }}>STEP 3 — 후킹 패턴 선택</div>
               <label style={{ color: '#ccc', fontSize: '14px', fontWeight: 700 }}>후킹 패턴</label>
               {([
                 ['external_observer', '외부 관찰자 시점', '예: 일본인이 한국에서 자판기를 찾는다'],
