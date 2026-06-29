@@ -123,6 +123,7 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
   const [aiArticleModal, setAiArticleModal] = useState(false);
   const [aiArticleSource, setAiArticleSource] = useState('');
   const [aiArticleHooking, setAiArticleHooking] = useState<'external_observer' | 'number_reversal' | 'origin_story'>('external_observer');
+  const [aiArticleDirection, setAiArticleDirection] = useState('');
   const [aiArticleLoading, setAiArticleLoading] = useState(false);
   const [aiArticleError, setAiArticleError] = useState<string | null>(null);
   const [aiArticleTitles, setAiArticleTitles] = useState<string[]>([]);
@@ -143,7 +144,7 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
       const res = await fetch('/api/ai-article', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: aiArticleSource, category, hookingPattern: aiArticleHooking }),
+        body: JSON.stringify({ source: aiArticleSource, category, hookingPattern: aiArticleHooking, direction: aiArticleDirection }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -164,6 +165,7 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
     if (aiArticleBody) setContent(aiArticleBody);
     setAiArticleModal(false);
     setAiArticleSource('');
+    setAiArticleDirection('');
     setAiArticleTitles([]);
     setAiArticleBody('');
     setAiArticleSelectedTitle(null);
@@ -366,7 +368,7 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <button
                   type="button"
-                  onClick={() => { setAiArticleModal(true); setAiArticleTitles([]); setAiArticleBody(''); setAiArticleSelectedTitle(null); setAiArticleError(null); }}
+                  onClick={() => { setAiArticleModal(true); setAiArticleDirection(''); setAiArticleTitles([]); setAiArticleBody(''); setAiArticleSelectedTitle(null); setAiArticleError(null); }}
                   disabled={busy}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '6px',
@@ -729,6 +731,18 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
                   </div>
                 </label>
               ))}
+            </div>
+
+            {/* 편집 방향 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ color: '#ccc', fontSize: '14px', fontWeight: 700 }}>편집 방향 메모 <span style={{ color: '#666', fontWeight: 400 }}>(선택사항)</span></label>
+              <textarea
+                value={aiArticleDirection}
+                onChange={(e) => setAiArticleDirection(e.target.value)}
+                placeholder="예) 햇반이 처음엔 실패작 취급 받았다는 걸 강조해줘 / 일본 특유의 장인정신 각도로 써줘 / 비즈니스 인사이트보다 문화적 재미에 집중해줘"
+                rows={3}
+                style={{ backgroundColor: '#111', border: '1px solid #444', borderRadius: '10px', color: '#eee', fontSize: '14px', padding: '12px 14px', resize: 'vertical', fontFamily: 'inherit', outline: 'none', lineHeight: 1.6 }}
+              />
             </div>
 
             {/* 생성하기 버튼 */}

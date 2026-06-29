@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 });
   }
 
-  const { source, category, hookingPattern } = await req.json();
+  const { source, category, hookingPattern, direction } = await req.json();
   if (!source?.trim()) {
     return NextResponse.json({ error: '원본 소스를 입력해주세요.' }, { status: 400 });
   }
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 }`;
 
   const userPrompt = `카테고리: ${category || '미분류'}
-후킹 패턴: ${patternInstruction}
+후킹 패턴: ${patternInstruction}${direction?.trim() ? `\n편집 방향 (반드시 반영해줘): ${direction.trim()}` : ''}
 
 아래 원본 소스를 바탕으로 줍줍줍 스타일의 글을 써줘.
 
