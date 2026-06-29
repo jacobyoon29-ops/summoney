@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     part: 'snippet',
     type: 'video',
     videoDuration: 'short',
-    order: 'viewCount',
+    order: 'relevance',
     regionCode: 'KR',
     relevanceLanguage: 'ko',
     maxResults: '30',
