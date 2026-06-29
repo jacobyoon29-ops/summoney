@@ -426,7 +426,8 @@ export default function ContentEditor({ value, onChange, disabled }: Props) {
                     onKeyDown={(e) => e.key === 'Enter' && searchUnsplash()}
                     placeholder="검색어를 입력하세요 (영문 권장)"
                     autoFocus
-                    style={{ flex: 1, padding: '8px 12px', fontSize: '14px', border: '1.5px solid #e5e5e5', borderRadius: '8px', outline: 'none', fontFamily: 'inherit' }}
+                    style={{ flex: 1, padding: '8px 12px', fontSize: '14px', border: '1.5px solid #e5e5e5', borderRadius: '8px', outline: 'none', fontFamily: 'inherit', color: '#111' }}
+                    className="unsplash-input"
                   />
                   <button type="button" onClick={searchUnsplash} disabled={unsplashLoading}
                     style={{ padding: '8px 18px', fontSize: '14px', fontWeight: 700, backgroundColor: '#1c1a17', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
@@ -607,4 +608,5 @@ const editorStyles = `
   .tiptap div.callout > *:last-child { margin-bottom: 0; }
   .tiptap blockquote.vertquote { border-left: 4px solid #c8a96e; background: transparent; border-radius: 0; padding: 4px 16px; margin: 0 0 1.5em; color: #666; font-size: 15px; font-weight: 400; font-style: italic; line-height: 1.7; }
   .tiptap hr { border: none; border-top: 2px solid #e5e5e5; margin: 1.5em 0; }
+  .unsplash-input::placeholder { color: #555; }
 `;
