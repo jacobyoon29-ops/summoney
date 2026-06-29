@@ -126,6 +126,7 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
   const [aiArticleQLoading, setAiArticleQLoading] = useState(false);
   const [aiArticleQError, setAiArticleQError] = useState<string | null>(null);
   const [aiArticleQCopied, setAiArticleQCopied] = useState(false);
+  const [aiArticleQItemCopied, setAiArticleQItemCopied] = useState<number | null>(null);
   const [aiArticleToast, setAiArticleToast] = useState(false);
   const [aiArticleSource, setAiArticleSource] = useState('');
   const [aiArticleHooking, setAiArticleHooking] = useState<'external_observer' | 'number_reversal' | 'origin_story'>('external_observer');
@@ -787,7 +788,18 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
                   {aiArticleQuestions.map((q, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '10px 12px', backgroundColor: '#1c1a17', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
                       <span style={{ color: '#c8a96e', fontSize: '12px', fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>{i + 1}</span>
-                      <span style={{ color: '#ddd', fontSize: '13px', lineHeight: 1.55 }}>{q}</span>
+                      <span style={{ color: '#ddd', fontSize: '13px', lineHeight: 1.55, flex: 1 }}>{q}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(q);
+                          setAiArticleQItemCopied(i);
+                          setTimeout(() => setAiArticleQItemCopied(null), 1000);
+                        }}
+                        style={{ background: 'none', border: 'none', color: '#c8a96e', fontSize: '13px', cursor: 'pointer', flexShrink: 0, padding: '0 2px', lineHeight: 1, marginTop: '1px' }}
+                      >
+                        {aiArticleQItemCopied === i ? '✓' : '⎘'}
+                      </button>
                     </div>
                   ))}
                 </div>
