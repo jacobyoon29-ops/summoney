@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
       videoId: item.id.videoId,
       url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
     }))
-    .filter((t) => t.viewCount >= 20000)
+    .filter((t) => t.viewCount >= 0)
     .sort((a, b) => b.viewCount - a.viewCount);
 
   if (filtered.length === 0) {
