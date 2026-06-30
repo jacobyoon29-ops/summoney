@@ -32,6 +32,12 @@ export default async function AdminLayout({
           <Link href="/admin/topics" style={{ fontSize: '13px', fontWeight: 600, color: '#c8a96e', padding: '6px 12px', border: '1px solid #e5dcc8', borderRadius: '8px', textDecoration: 'none' }}>
             소재 발굴
           </Link>
+          <Link href="/admin/series" style={{ fontSize: '13px', fontWeight: 600, color: '#c8a96e', padding: '6px 12px', border: '1px solid #e5dcc8', borderRadius: '8px', textDecoration: 'none' }}>
+            시리즈
+          </Link>
+          <Link href="/admin/guide" style={{ fontSize: '13px', fontWeight: 600, color: '#888', padding: '6px 12px', border: '1px solid #e5e5e5', borderRadius: '8px', textDecoration: 'none' }}>
+            가이드
+          </Link>
           <Link href="/admin/settings" style={{ fontSize: '13px', fontWeight: 600, color: '#c8a96e', padding: '6px 12px', border: '1px solid #e5dcc8', borderRadius: '8px', textDecoration: 'none' }}>
             사이트 설정
           </Link>

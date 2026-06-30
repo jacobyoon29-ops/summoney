@@ -4,6 +4,13 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import type { SiteSettings } from '@/lib/supabase';
 
+export type HomeSeries = {
+  id: string;
+  name: string;
+  slug: string;
+  coverImage: string | null;
+};
+
 export type HomeArticle = {
   id: string;
   category: string;
@@ -15,6 +22,9 @@ export type HomeArticle = {
   isFeatured?: boolean;
   viewCount: number;
   createdAt: string;
+  seriesId: string | null;
+  seriesName: string | null;
+  seriesSlug: string | null;
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -52,7 +62,7 @@ function useCountUp(target: number, duration = 1200) {
   return count;
 }
 
-export default function HomeClient({ articles, siteSettings }: { articles: HomeArticle[]; siteSettings: SiteSettings }) {
+export default function HomeClient({ articles, seriesList, siteSettings }: { articles: HomeArticle[]; seriesList: HomeSeries[]; siteSettings: SiteSettings }) {
   const [isMobile, setIsMobile] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [mounted, setMounted] = useState(false);
@@ -182,6 +192,35 @@ export default function HomeClient({ articles, siteSettings }: { articles: HomeA
           )}
         </div>
       </section>
+
+      {/* 시리즈 배너 */}
+      {seriesList.length > 0 && (
+        <section style={{ background: '#f8f7f4', borderBottom: '1px solid #e5e0d8' }}>
+          <div style={{ maxWidth: '1100px', margin: '0 auto', padding: isMobile ? '24px 16px' : '28px 40px' }}>
+            <p style={{ color: '#c8a96e', fontSize: '11px', letterSpacing: '4px', fontWeight: 700, margin: '0 0 14px' }}>SERIES</p>
+            <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '4px' }}>
+              {seriesList.map((s) => (
+                <Link key={s.id} href={`/series/${s.slug}`} style={{ textDecoration: 'none', flexShrink: 0 }}>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    padding: '10px 16px', border: '1px solid #c8a96e', borderRadius: '10px',
+                    backgroundColor: '#fff', transition: 'background-color 0.2s',
+                  }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#fdf8f0'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.backgroundColor = '#fff'; }}
+                  >
+                    {s.coverImage && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={s.coverImage} alt={s.name} style={{ width: '32px', height: '32px', objectFit: 'cover', borderRadius: '6px', flexShrink: 0 }} />
+                    )}
+                    <span style={{ color: '#1c1a17', fontSize: '13px', fontWeight: 700, whiteSpace: 'nowrap' }}>{s.name}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 글 목록 */}
       <section id="articles" style={{ background: '#f8f7f4' }}>
@@ -442,13 +481,26 @@ function ArticleCard({ article, isMobile, index }: { article: HomeArticle; isMob
 
       {/* 카드 바디 */}
       <div style={{ padding: '16px', background: '#ffffff' }}>
-        <span style={{
-          fontSize: '12px', fontWeight: hovered ? 700 : 400,
-          color: hovered ? '#111' : '#888',
-          transition: 'color 0.2s ease, font-weight 0.2s ease',
-        }}>
-          {article.category}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+          <span style={{
+            fontSize: '12px', fontWeight: hovered ? 700 : 400,
+            color: hovered ? '#111' : '#888',
+            transition: 'color 0.2s ease, font-weight 0.2s ease',
+          }}>
+            {article.category}
+          </span>
+          {article.seriesSlug && article.seriesName && (
+            <Link
+              href={`/series/${article.seriesSlug}`}
+              onClick={(e) => e.stopPropagation()}
+              style={{ textDecoration: 'none' }}
+            >
+              <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 7px', borderRadius: '4px', backgroundColor: '#fdf3e0', color: '#c8a96e', border: '1px solid #e8d5a0', whiteSpace: 'nowrap' }}>
+                ◆ {article.seriesName}
+              </span>
+            </Link>
+          )}
+        </div>
         <h2 style={{
           fontSize: '15px', fontWeight: 700,
           margin: '10px 0 6px', lineHeight: 1.5, color: '#111',

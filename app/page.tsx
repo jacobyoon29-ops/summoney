@@ -1,10 +1,11 @@
 import { getAdminClient } from '@/lib/supabaseAdmin';
-import { DEFAULT_SETTINGS, type Article, type SiteSettings } from '@/lib/supabase';
-import HomeClient, { type HomeArticle } from './HomeClient';
+import { DEFAULT_SETTINGS, type Article, type Series, type SiteSettings } from '@/lib/supabase';
+import HomeClient, { type HomeArticle, type HomeSeries } from './HomeClient';
 
 export const dynamic = 'force-dynamic';
 
-function toHomeArticle(a: Article): HomeArticle {
+function toHomeArticle(a: Article, seriesMap: Map<string, Series>): HomeArticle {
+  const series = a.series_id ? seriesMap.get(a.series_id) : undefined;
   return {
     id: a.id,
     category: a.category,
@@ -16,10 +17,13 @@ function toHomeArticle(a: Article): HomeArticle {
     isFeatured: a.is_featured ?? false,
     viewCount: a.view_count,
     createdAt: a.created_at,
+    seriesId: a.series_id,
+    seriesName: series?.name ?? null,
+    seriesSlug: series?.slug ?? null,
   };
 }
 
-async function getPublishedArticles(): Promise<HomeArticle[]> {
+async function getPublishedArticles(seriesMap: Map<string, Series>): Promise<HomeArticle[]> {
   try {
     const supabase = getAdminClient();
     const { data, error } = await supabase
@@ -28,7 +32,17 @@ async function getPublishedArticles(): Promise<HomeArticle[]> {
       .eq('is_published', true)
       .order('published_at', { ascending: false });
     if (error || !data) return [];
-    return (data as Article[]).map(toHomeArticle);
+    return (data as Article[]).map((a) => toHomeArticle(a, seriesMap));
+  } catch {
+    return [];
+  }
+}
+
+async function getAllSeries(): Promise<Series[]> {
+  try {
+    const supabase = getAdminClient();
+    const { data } = await supabase.from('series').select('*').order('created_at', { ascending: false });
+    return (data ?? []) as Series[];
   } catch {
     return [];
   }
@@ -45,9 +59,16 @@ async function getSiteSettings(): Promise<SiteSettings> {
 }
 
 export default async function Home() {
-  const [articles, siteSettings] = await Promise.all([
-    getPublishedArticles(),
-    getSiteSettings(),
-  ]);
-  return <HomeClient articles={articles} siteSettings={siteSettings} />;
+  const [allSeries, siteSettings] = await Promise.all([getAllSeries(), getSiteSettings()]);
+  const seriesMap = new Map(allSeries.map((s) => [s.id, s]));
+  const articles = await getPublishedArticles(seriesMap);
+
+  const seriesList: HomeSeries[] = allSeries.map((s) => ({
+    id: s.id,
+    name: s.name,
+    slug: s.slug,
+    coverImage: s.cover_image,
+  }));
+
+  return <HomeClient articles={articles} seriesList={seriesList} siteSettings={siteSettings} />;
 }

@@ -47,6 +47,16 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   copyright: 'Copyright © 줍줍줍 All Rights Reserved',
 };
 
+// series 테이블의 한 행
+export type Series = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  cover_image: string | null;
+  created_at: string;
+};
+
 // articles 테이블의 한 행
 export type Article = {
   id: string;
@@ -64,5 +74,6 @@ export type Article = {
   view_count: number;
   star_count: number;
   is_featured: boolean;
+  series_id: string | null;
   created_at: string;
 };

@@ -1,7 +1,7 @@
 'use server';
 
 import Anthropic from '@anthropic-ai/sdk';
-import { CATEGORIES, COVER_BUCKET, DEFAULT_SETTINGS, type Article, type SiteSettings } from '@/lib/supabase';
+import { CATEGORIES, COVER_BUCKET, DEFAULT_SETTINGS, type Article, type Series, type SiteSettings } from '@/lib/supabase';
 import { getAdminClient } from '@/lib/supabaseAdmin';
 import { isAuthed } from './auth';
 
@@ -183,6 +183,7 @@ export async function createArticle(formData: FormData): Promise<ActionResult> {
   const tagsRaw = String(formData.get('tags') ?? '').trim();
   const isPublished = formData.get('is_published') === 'true';
   const scheduledAtRaw = String(formData.get('scheduled_at') ?? '').trim();
+  const seriesIdRaw = String(formData.get('series_id') ?? '').trim() || null;
   const cover = formData.get('cover');
 
   const invalid = validate(title, content, category);
@@ -216,6 +217,7 @@ export async function createArticle(formData: FormData): Promise<ActionResult> {
     scheduled_at: scheduledAt,
     tags,
     related_ids: relatedIds?.length ? relatedIds : null,
+    series_id: seriesIdRaw,
     view_count: 0,
     star_count: 0,
   });
@@ -245,6 +247,7 @@ export async function updateArticle(formData: FormData): Promise<ActionResult> {
   const tagsRaw = String(formData.get('tags') ?? '').trim();
   const isPublished = formData.get('is_published') === 'true';
   const scheduledAtRaw = String(formData.get('scheduled_at') ?? '').trim();
+  const seriesIdRaw = String(formData.get('series_id') ?? '').trim() || null;
   const removeCover = formData.get('remove_cover') === 'true';
   const viewCountRaw = formData.get('view_count');
   const starCountRaw = formData.get('star_count');
@@ -302,6 +305,7 @@ export async function updateArticle(formData: FormData): Promise<ActionResult> {
       ...(relatedIds !== undefined
         ? { related_ids: relatedIds.length ? relatedIds : null }
         : {}),
+      series_id: seriesIdRaw,
       ...(viewCountRaw !== null ? { view_count: Math.max(0, parseInt(String(viewCountRaw), 10) || 0) } : {}),
       ...(starCountRaw !== null ? { star_count: Math.max(0, parseInt(String(starCountRaw), 10) || 0) } : {}),
     })
@@ -361,6 +365,74 @@ export async function saveSiteSettings(formData: FormData): Promise<ActionResult
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : '저장 중 오류' };
+  }
+}
+
+/** 시리즈 목록 조회 */
+export async function getSeries(): Promise<Series[]> {
+  try {
+    const supabase = getAdminClient();
+    const { data } = await supabase
+      .from('series')
+      .select('*')
+      .order('created_at', { ascending: false });
+    return (data ?? []) as Series[];
+  } catch {
+    return [];
+  }
+}
+
+/** 시리즈 생성 */
+export async function createSeries(formData: FormData): Promise<ActionResult> {
+  if (!(await isAuthed())) return { ok: false, error: '로그인이 필요합니다.' };
+  const name = String(formData.get('name') ?? '').trim();
+  const slug = String(formData.get('slug') ?? '').trim();
+  const description = String(formData.get('description') ?? '').trim() || null;
+  const cover_image = String(formData.get('cover_image') ?? '').trim() || null;
+  if (!name) return { ok: false, error: '시리즈 이름을 입력해주세요.' };
+  if (!slug) return { ok: false, error: '슬러그를 입력해주세요.' };
+  try {
+    const supabase = getAdminClient();
+    const { error } = await supabase.from('series').insert({ name, slug, description, cover_image });
+    if (error) return { ok: false, error: '저장 실패: ' + error.message };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : '오류' };
+  }
+}
+
+/** 시리즈 수정 */
+export async function updateSeries(formData: FormData): Promise<ActionResult> {
+  if (!(await isAuthed())) return { ok: false, error: '로그인이 필요합니다.' };
+  const id = String(formData.get('id') ?? '').trim();
+  const name = String(formData.get('name') ?? '').trim();
+  const slug = String(formData.get('slug') ?? '').trim();
+  const description = String(formData.get('description') ?? '').trim() || null;
+  const cover_image = String(formData.get('cover_image') ?? '').trim() || null;
+  if (!id) return { ok: false, error: 'id가 없습니다.' };
+  if (!name) return { ok: false, error: '시리즈 이름을 입력해주세요.' };
+  if (!slug) return { ok: false, error: '슬러그를 입력해주세요.' };
+  try {
+    const supabase = getAdminClient();
+    const { error } = await supabase.from('series').update({ name, slug, description, cover_image }).eq('id', id);
+    if (error) return { ok: false, error: '수정 실패: ' + error.message };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : '오류' };
+  }
+}
+
+/** 시리즈 삭제 */
+export async function deleteSeries(id: string): Promise<ActionResult> {
+  if (!(await isAuthed())) return { ok: false, error: '로그인이 필요합니다.' };
+  if (!id) return { ok: false, error: 'id가 없습니다.' };
+  try {
+    const supabase = getAdminClient();
+    const { error } = await supabase.from('series').delete().eq('id', id);
+    if (error) return { ok: false, error: '삭제 실패: ' + error.message };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : '오류' };
   }
 }
 

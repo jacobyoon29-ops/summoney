@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback, useRef, type CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { CATEGORIES, type Article, type Category } from '@/lib/supabase';
-import { createArticle, updateArticle, deleteArticle } from './actions';
+import { CATEGORIES, type Article, type Category, type Series } from '@/lib/supabase';
+import { createArticle, updateArticle, deleteArticle, getSeries } from './actions';
 
 const ContentEditor = dynamic(() => import('./ContentEditor'), { ssr: false });
 
@@ -36,6 +36,8 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
   );
   const [viewCount, setViewCount] = useState<string>(String(initial?.view_count ?? 0));
   const [starCount, setStarCount] = useState<string>(String(initial?.star_count ?? 0));
+  const [seriesId, setSeriesId] = useState<string>(initial?.series_id ?? '');
+  const [seriesList, setSeriesList] = useState<Series[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<null | 'draft' | 'publish' | 'delete'>(null);
 
@@ -73,6 +75,8 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
     const now = new Date();
     setAutoSavedAt(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`);
   }, [draftKey]);
+
+  useEffect(() => { getSeries().then(setSeriesList); }, []);
 
   useEffect(() => {
     const raw = localStorage.getItem(draftKey);
@@ -291,6 +295,7 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
       fd.append('tags', tags.join(','));
       fd.append('content', content.trim());
       fd.append('category', category);
+      fd.append('series_id', seriesId);
       fd.append('is_published', String(publish));
       fd.append('scheduled_at', scheduledAt);
       if (isEdit) {
@@ -573,7 +578,24 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
             </select>
           </div>
 
-          {/* ⑦ 커버 이미지 */}
+          {/* ⑦ 시리즈 */}
+          <div style={fieldStyle}>
+            <label style={labelStyle} htmlFor="series">시리즈 / 특집 <span style={{ color: '#bbb', fontWeight: 400, fontSize: '12px' }}>(선택)</span></label>
+            <select
+              id="series"
+              value={seriesId}
+              onChange={(e) => setSeriesId(e.target.value)}
+              style={inputStyle}
+              disabled={busy}
+            >
+              <option value="">시리즈 없음</option>
+              {seriesList.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* ⑧ 커버 이미지 (구 ⑦) */}
           <div style={fieldStyle}>
             <label style={labelStyle} htmlFor="cover">커버 이미지</label>
             <input
