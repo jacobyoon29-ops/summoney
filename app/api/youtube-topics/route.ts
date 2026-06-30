@@ -42,10 +42,12 @@ export async function POST(req: NextRequest) {
     key: youtubeKey,
   });
 
-  const searchRes = await fetch(
-    `https://www.googleapis.com/youtube/v3/search?${searchParams}`
-  );
+  const searchUrl = `https://www.googleapis.com/youtube/v3/search?${searchParams}`;
+  console.log(`[youtube-topics] Search URL: ${searchUrl}`);
+  const searchRes = await fetch(searchUrl);
   const searchData = await searchRes.json();
+  console.log(`[youtube-topics] Search 응답 raw:`, JSON.stringify(searchData, null, 2));
+  if (searchData.error) console.log(`[youtube-topics] Search 에러:`, JSON.stringify(searchData.error));
 
   if (!searchRes.ok) {
     return NextResponse.json(
@@ -69,10 +71,12 @@ export async function POST(req: NextRequest) {
     key: youtubeKey,
   });
 
-  const statsRes = await fetch(
-    `https://www.googleapis.com/youtube/v3/videos?${statsParams}`
-  );
+  const statsUrl = `https://www.googleapis.com/youtube/v3/videos?${statsParams}`;
+  console.log(`[youtube-topics] Stats URL: ${statsUrl}`);
+  const statsRes = await fetch(statsUrl);
   const statsData = await statsRes.json();
+  console.log(`[youtube-topics] Stats 응답 raw:`, JSON.stringify(statsData, null, 2));
+  if (statsData.error) console.log(`[youtube-topics] Stats 에러:`, JSON.stringify(statsData.error));
 
   if (!statsRes.ok) {
     return NextResponse.json(
