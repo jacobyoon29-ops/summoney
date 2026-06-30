@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
 
   const items: { id: { videoId: string }; snippet: { title: string } }[] =
     searchData.items ?? [];
+  console.log(`[youtube-topics] 검색된 영상 개수: ${items.length}`);
   if (items.length === 0) {
     return NextResponse.json({ topics: [] });
   }
@@ -95,6 +96,7 @@ export async function POST(req: NextRequest) {
     }))
     .filter((t) => t.viewCount >= (minViewCount ?? 0))
     .sort((a, b) => b.viewCount - a.viewCount);
+  console.log(`[youtube-topics] 필터링 전: ${items.length}개 → 후: ${filtered.length}개 (minViewCount: ${minViewCount ?? 0})`);
 
   if (filtered.length === 0) {
     return NextResponse.json({ topics: [] });
@@ -139,6 +141,7 @@ export async function POST(req: NextRequest) {
       ...filtered[s.index],
       reason: s.reason,
     }));
+  console.log(`[youtube-topics] Claude 선별 전: ${filtered.length}개 → 후: ${topics.length}개`);
 
   return NextResponse.json({ topics });
 }

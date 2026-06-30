@@ -163,7 +163,7 @@ export default function TopicsPage() {
         {/* 결과 */}
         {topics !== null && topics.length === 0 && (
           <p style={{ color: '#888', fontSize: '15px' }}>
-            조회수 2만 이상 소재가 없어요. 다시 발굴해보세요.
+            조회수 {minViewCount >= 10000 ? (minViewCount/10000)+'만' : minViewCount} 이상 소재가 없어요. 다시 발굴해보세요.
           </p>
         )}
 
