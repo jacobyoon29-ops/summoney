@@ -4,10 +4,10 @@ import { isAuthed } from '@/app/admin/auth';
 
 type Category = '다른나라' | '경제' | '사람';
 
-const KEYWORDS: Record<Category, string> = {
-  다른나라: '세계 문화 신기한 충격 몰랐던 이상한 역사 전통 여행 럭셔리 부자',
-  경제: '경제 기업 브랜드 마케팅 돈 창업 비즈니스 가격 매출',
-  사람: '인물 CEO 창업자 부자 성공 천재 비하인드 일화',
+const KEYWORDS: Record<Category, string[]> = {
+  다른나라: ['세계 문화 신기한', '충격 몰랐던 나라', '이상한 나라 역사', '전통 축제 외국', '럭셔리 여행 부자', '외국인 생활 이민', '세계기록 이색문화'],
+  경제: ['경제 기업 비즈니스', '브랜드 마케팅 전략', '돈 창업 스타트업', '가격 심리 매출', '명품 다이소 이케아', '역대급 매출 성장'],
+  사람: ['인물 CEO 창업자', '부자 성공 천재', '일론머스크 워런버핏', '비하인드 일화 습관', '어린시절 반전 인물', '젠슨황 샘올트먼'],
 };
 
 export async function POST(req: NextRequest) {
@@ -30,6 +30,10 @@ export async function POST(req: NextRequest) {
   }
 
   // 1. YouTube Search API로 카테고리별 인기 쇼츠 30개 검색
+  const keywordList = KEYWORDS[category];
+  const selectedKeyword = keywordList[Math.floor(Math.random() * keywordList.length)];
+  console.log(`[youtube-topics] 선택된 키워드: ${selectedKeyword}`);
+
   const searchParams = new URLSearchParams({
     part: 'snippet',
     type: 'video',
@@ -38,7 +42,7 @@ export async function POST(req: NextRequest) {
     regionCode: 'KR',
     relevanceLanguage: 'ko',
     maxResults: '30',
-    q: KEYWORDS[category],
+    q: selectedKeyword,
     key: youtubeKey,
   });
 
