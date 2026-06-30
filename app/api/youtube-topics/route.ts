@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 });
   }
 
-  const { category } = (await req.json()) as { category: Category };
+  const { category, minViewCount } = (await req.json()) as { category: Category; minViewCount?: number };
   if (!KEYWORDS[category]) {
     return NextResponse.json({ error: '유효하지 않은 카테고리입니다.' }, { status: 400 });
   }
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
       videoId: item.id.videoId,
       url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
     }))
-    .filter((t) => t.viewCount >= 0)
+    .filter((t) => t.viewCount >= (minViewCount ?? 0))
     .sort((a, b) => b.viewCount - a.viewCount);
 
   if (filtered.length === 0) {

@@ -31,6 +31,7 @@ export default function TopicsPage() {
   const [activeTab, setActiveTab] = useState<Category>('다른나라');
   const [loading, setLoading] = useState(false);
   const [topics, setTopics] = useState<Topic[] | null>(null);
+  const [minViewCount, setMinViewCount] = useState<number>(0);
 
   async function discover() {
     setLoading(true);
@@ -39,7 +40,7 @@ export default function TopicsPage() {
       const res = await fetch('/api/youtube-topics', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category: activeTab }),
+        body: JSON.stringify({ category: activeTab, minViewCount }),
       });
       const data = await res.json();
       setTopics(data.topics ?? []);
@@ -94,6 +95,32 @@ export default function TopicsPage() {
               {tab.label}
             </button>
           ))}
+        </div>
+
+        {/* 조회수 기준 드롭다운 */}
+        <div style={{ marginBottom: '20px' }}>
+          <select
+            value={minViewCount}
+            onChange={(e) => setMinViewCount(Number(e.target.value))}
+            style={{
+              backgroundColor: '#1c1a17',
+              border: '1px solid #c8a96e',
+              borderRadius: '8px',
+              color: '#c8a96e',
+              fontSize: '14px',
+              fontWeight: 600,
+              padding: '8px 14px',
+              cursor: 'pointer',
+              outline: 'none',
+            }}
+          >
+            <option value={0}>전체</option>
+            <option value={10000}>1만 이상</option>
+            <option value={50000}>5만 이상</option>
+            <option value={100000}>10만 이상</option>
+            <option value={300000}>30만 이상</option>
+            <option value={500000}>50만 이상</option>
+          </select>
         </div>
 
         {/* 발굴 버튼 */}
