@@ -160,7 +160,7 @@ export default function TopicsPage() {
             )}
             {loading ? '발굴 중...' : '소재 발굴'}
           </button>
-          {topics !== null && (
+          {topics !== null && topics.length > 0 && (
             <button
               onClick={discover}
               disabled={loading}
@@ -175,7 +175,7 @@ export default function TopicsPage() {
                 cursor: loading ? 'not-allowed' : 'pointer',
               }}
             >
-              다시 발굴 🔄
+              🔄 다시 발굴
             </button>
           )}
         </div>
