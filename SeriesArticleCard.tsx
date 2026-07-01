@@ -1,4 +1,5 @@
 'use client';
+
 import { useState } from 'react';
 import Link from 'next/link';
 import type { Article } from '@/lib/supabase';
@@ -36,6 +37,7 @@ export default function SeriesArticleCard({ article }: { article: Article }) {
       >
         <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: catBg, overflow: 'hidden' }}>
           {article.cover_image ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img src={article.cover_image} alt={article.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
