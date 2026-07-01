@@ -6,12 +6,12 @@ import dynamic from 'next/dynamic';
 import { CATEGORIES, type Article, type Category, type Series } from '@/lib/supabase';
 import { createArticle, updateArticle, deleteArticle, getSeries } from './actions';
 
-const ContentEditor = dynamic(() => import('./ContentEditor'), { ssr: false });
-
 type HookingPattern =
   | 'fact_reversed' | 'reason_hidden' | 'korea_only_missing'
   | 'external_observer' | 'then_vs_now' | 'number_shock'
   | 'why_fooled' | 'origin_story' | 'nobody_told';
+
+const ContentEditor = dynamic(() => import('./ContentEditor'), { ssr: false });
 
 export default function ArticleForm({ initial }: { initial?: Article }) {
   const router = useRouter();
