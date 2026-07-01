@@ -21,6 +21,7 @@ export type HomeArticle = {
   slug: string;
   isFeatured?: boolean;
   viewCount: number;
+  starCount: number;
   createdAt: string;
   seriesId: string | null;
   seriesName: string | null;
@@ -155,7 +156,7 @@ export default function HomeClient({ articles, seriesList, siteSettings }: { art
             <p style={{ color: '#c8a96e', fontSize: '11px', letterSpacing: '5px', marginBottom: '20px' }}>JUPJUPJUP</p>
             <h1
               className={mounted ? 'hero-fade-up' : ''}
-              style={{ color: '#fff', fontSize: isMobile ? '42px' : '58px', fontWeight: 900, lineHeight: 1.2, letterSpacing: '-2px', marginBottom: '14px', animationDelay: '0s' }}
+              style={{ color: '#fff', fontSize: isMobile ? '52px' : '72px', fontWeight: 900, lineHeight: 1.2, letterSpacing: '-2px', marginBottom: '14px', animationDelay: '0s' }}
             >
               알면 더 재밌는<br />것들을 줍줍줍
             </h1>
@@ -374,17 +375,6 @@ function arrowStyle(side: 'left' | 'right'): React.CSSProperties {
   };
 }
 
-/* ── 시드 기반 유틸 ── */
-function hashStr(s: string): number {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
-  return Math.abs(h);
-}
-function seededFloat(seed: number): number {
-  const x = Math.sin(seed + 1) * 10000;
-  return x - Math.floor(x);
-}
-
 /* ── 카드 컴포넌트 ── */
 function ArticleCard({ article, isMobile, index }: { article: HomeArticle; isMobile: boolean; index: number }) {
   const [hovered, setHovered] = useState(false);
@@ -402,15 +392,6 @@ function ArticleCard({ article, isMobile, index }: { article: HomeArticle; isMob
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
-
-  // 조회수/별점 부스팅 (시드 기반 고정)
-  const seed = hashStr(article.id);
-  const ageDays = (Date.now() - new Date(article.createdAt).getTime()) / 86400000;
-  const [offsetMin, offsetRange] = ageDays < 7 ? [50, 100] : ageDays < 30 ? [100, 200] : [200, 300];
-  const offset = Math.round(offsetMin + seededFloat(seed) * offsetRange);
-  const displayCount = article.viewCount + offset;
-  const starRatio = 0.03 + seededFloat(seed + 1) * 0.02;
-  const starCount = Math.round(displayCount * starRatio);
 
   const transform = !visible
     ? 'translateY(30px)'
@@ -437,7 +418,7 @@ function ArticleCard({ article, isMobile, index }: { article: HomeArticle; isMob
       }}
     >
       {/* 이미지 */}
-      <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: CATEGORY_BG[article.category] ?? '#f8f8f8', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #d1ccc4' }}>
+      <div style={{ width: '100%', aspectRatio: '3/2', backgroundColor: CATEGORY_BG[article.category] ?? '#f8f8f8', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #d1ccc4' }}>
         {article.coverImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -512,8 +493,8 @@ function ArticleCard({ article, isMobile, index }: { article: HomeArticle; isMob
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '8px' }}>
           <p style={{ fontSize: '12px', color: '#555', margin: 0 }}>{article.date}</p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '11px', color: '#aaa' }}>👁 {displayCount.toLocaleString()}</span>
-            <span style={{ fontSize: '11px', color: '#c8a96e' }}>★ {starCount.toLocaleString()}</span>
+            <span style={{ fontSize: '11px', color: '#aaa' }}>👁 {article.viewCount.toLocaleString()}</span>
+            <span style={{ fontSize: '11px', color: '#c8a96e' }}>★ {article.starCount.toLocaleString()}</span>
           </div>
         </div>
       </div>

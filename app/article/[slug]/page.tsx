@@ -208,7 +208,7 @@ export default async function ArticlePage({
           <img
             src={article.cover_image}
             alt={article.title}
-            style={{ width: '100%', borderRadius: '16px', marginBottom: '32px', display: 'block' }}
+            style={{ width: '100%', maxHeight: '400px', objectFit: 'cover', borderRadius: '16px', marginBottom: '32px', display: 'block' }}
           />
         )}
 

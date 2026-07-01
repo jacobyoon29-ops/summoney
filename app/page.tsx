@@ -16,6 +16,7 @@ function toHomeArticle(a: Article, seriesMap: Map<string, Series>): HomeArticle 
     slug: a.slug,
     isFeatured: a.is_featured ?? false,
     viewCount: a.view_count,
+    starCount: a.star_count ?? 0,
     createdAt: a.created_at,
     seriesId: a.series_id,
     seriesName: series?.name ?? null,
