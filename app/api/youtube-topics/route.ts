@@ -94,10 +94,21 @@ export async function POST(req: NextRequest) {
     statsMap[video.id] = parseInt(video.statistics?.viewCount ?? '0', 10);
   }
 
-  // 3. 조회수 2만 이상 필터링
+  function decodeHtml(str: string): string {
+    return str
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&#x27;/g, "'")
+      .replace(/&apos;/g, "'");
+  }
+
+  // 3. 조회수 필터링
   const filtered = items
     .map((item) => ({
-      title: item.snippet.title,
+      title: decodeHtml(item.snippet.title),
       viewCount: statsMap[item.id.videoId] ?? 0,
       videoId: item.id.videoId,
       url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
