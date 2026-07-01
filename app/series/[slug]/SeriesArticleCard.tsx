@@ -23,7 +23,7 @@ export default function SeriesArticleCard({ article }: { article: Article }) {
     <Link href={`/article/${article.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
       <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ backgroundColor: "#242118", border: `1px solid ${hovered ? "#c8a96e" : "#333"}`, borderRadius: "12px", overflow: "hidden", transition: "border-color 0.2s, transform 0.2s", transform: hovered ? "translateY(-4px)" : "translateY(0)" }}>
         <div style={{ width: "100%", aspectRatio: "16/9", backgroundColor: catBg, overflow: "hidden" }}>
-          {article.cover_image ? (<img src={article.cover_image} alt={article.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />) : (<div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ color: "#444", fontSize: "12px" }}>{article.category}</span></div>)}
+          {article.cover_image ? (<img src={article.cover_image} alt={article.title} style={{ width: "100%", height: "100%", objectFit: "cover", filter: hovered ? "grayscale(0%)" : "grayscale(100%)", transition: "filter 0.3s ease" }} />) : (<div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ color: "#444", fontSize: "12px" }}>{article.category}</span></div>)}
         </div>
         <div style={{ padding: "16px" }}>
           <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 8px", borderRadius: "20px", backgroundColor: catColor, color: "#fff", display: "inline-block", marginBottom: "8px" }}>{article.category}</span>
