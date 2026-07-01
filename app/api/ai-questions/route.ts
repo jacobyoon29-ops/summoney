@@ -7,10 +7,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 });
   }
 
-  const { topic } = await req.json();
+  const { topic, count = 5 } = await req.json();
   if (!topic?.trim()) {
     return NextResponse.json({ error: '주제를 입력해주세요.' }, { status: 400 });
   }
+
+  const qCount = [3, 5, 7].includes(count) ? count : 5;
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -25,13 +27,13 @@ export async function POST(req: NextRequest) {
 
 주제: "${topic.trim()}"
 
-이 주제로 흥미로운 기사를 쓰기 위해 에디터가 리서치해야 할 질문 5개를 생성해줘.
+이 주제로 흥미로운 기사를 쓰기 위해 에디터가 리서치해야 할 질문 ${qCount}개를 생성해줘.
 - 숫자/통계/역사/기원/구조/반전이 나올 수 있는 각도로 질문을 만들어
 - 구글, 유튜브, 나무위키, Liner 등에서 검색하기 좋은 형태로
 - 독자가 "몰랐던 사실"을 발견할 수 있는 방향으로
 
 출력 형식 (JSON만, 다른 텍스트 없이):
-{"questions": ["질문1", "질문2", "질문3", "질문4", "질문5"]}`;
+{"questions": ["질문1", "질문2", ...${qCount}개]}`;
 
   try {
     const message = await client.messages.create({

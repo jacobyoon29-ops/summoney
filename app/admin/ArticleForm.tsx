@@ -8,6 +8,11 @@ import { createArticle, updateArticle, deleteArticle, getSeries } from './action
 
 const ContentEditor = dynamic(() => import('./ContentEditor'), { ssr: false });
 
+type HookingPattern =
+  | 'fact_reversed' | 'reason_hidden' | 'korea_only_missing'
+  | 'external_observer' | 'then_vs_now' | 'number_shock'
+  | 'why_fooled' | 'origin_story' | 'nobody_told';
+
 export default function ArticleForm({ initial }: { initial?: Article }) {
   const router = useRouter();
   const isEdit = !!initial;
@@ -125,16 +130,18 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
 
   // AI 글 생성 모달
   const [aiArticleModal, setAiArticleModal] = useState(false);
+  const [aiArticleYoutubeLink, setAiArticleYoutubeLink] = useState('');
+  const [aiArticleDirection, setAiArticleDirection] = useState('');
   const [aiArticleTopic, setAiArticleTopic] = useState('');
+  const [aiArticleQCount, setAiArticleQCount] = useState<3 | 5 | 7>(5);
   const [aiArticleQuestions, setAiArticleQuestions] = useState<string[]>([]);
+  const [aiArticleQSources, setAiArticleQSources] = useState<string[]>([]);
   const [aiArticleQLoading, setAiArticleQLoading] = useState(false);
   const [aiArticleQError, setAiArticleQError] = useState<string | null>(null);
   const [aiArticleQCopied, setAiArticleQCopied] = useState(false);
   const [aiArticleQItemCopied, setAiArticleQItemCopied] = useState<number | null>(null);
   const [aiArticleToast, setAiArticleToast] = useState(false);
-  const [aiArticleSource, setAiArticleSource] = useState('');
-  const [aiArticleHooking, setAiArticleHooking] = useState<'external_observer' | 'number_reversal' | 'origin_story'>('external_observer');
-  const [aiArticleDirection, setAiArticleDirection] = useState('');
+  const [aiArticleHooking, setAiArticleHooking] = useState<HookingPattern>('fact_reversed');
   const [aiArticleLoading, setAiArticleLoading] = useState(false);
   const [aiArticleError, setAiArticleError] = useState<string | null>(null);
   const [aiArticleTitles, setAiArticleTitles] = useState<string[]>([]);
@@ -149,17 +156,19 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
     setAiArticleQLoading(true);
     setAiArticleQError(null);
     setAiArticleQuestions([]);
+    setAiArticleQSources([]);
     setAiArticleQCopied(false);
     try {
       const res = await fetch('/api/ai-questions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: aiArticleTopic }),
+        body: JSON.stringify({ topic: aiArticleTopic, count: aiArticleQCount }),
       });
       const data = await res.json();
       const questions = Array.isArray(data.questions) ? data.questions : [];
       if (questions.length > 0) {
         setAiArticleQuestions(questions);
+        setAiArticleQSources(new Array(questions.length).fill(''));
         navigator.clipboard.writeText(questions.join('\n'));
         setAiArticleQCopied(true);
         setAiArticleToast(true);
@@ -175,8 +184,9 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
   }
 
   async function handleAiArticleGenerate() {
-    if (!aiArticleSource.trim()) {
-      setAiArticleError('원본 소스를 입력해주세요.');
+    const hasSource = aiArticleQSources.some(s => s.trim());
+    if (!hasSource && !aiArticleYoutubeLink.trim()) {
+      setAiArticleError('최소 하나의 질문에 자료를 입력하거나 YouTube 링크를 넣어주세요.');
       return;
     }
     setAiArticleLoading(true);
@@ -184,11 +194,21 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
     setAiArticleTitles([]);
     setAiArticleBody('');
     setAiArticleSelectedTitle(null);
+    const qSources = aiArticleQuestions.map((q, i) => ({
+      question: q,
+      source: aiArticleQSources[i] ?? '',
+    }));
     try {
       const res = await fetch('/api/ai-article', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: aiArticleSource, category, hookingPattern: aiArticleHooking, direction: aiArticleDirection }),
+        body: JSON.stringify({
+          youtubeLink: aiArticleYoutubeLink,
+          qSources,
+          category,
+          hookingPattern: aiArticleHooking,
+          direction: aiArticleDirection,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -208,12 +228,15 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
     if (aiArticleSelectedTitle) setTitle(aiArticleSelectedTitle);
     if (aiArticleBody) setContent(aiArticleBody);
     setAiArticleModal(false);
+    setAiArticleYoutubeLink('');
+    setAiArticleDirection('');
     setAiArticleTopic('');
+    setAiArticleQCount(5);
     setAiArticleQuestions([]);
+    setAiArticleQSources([]);
     setAiArticleQError(null);
     setAiArticleQCopied(false);
-    setAiArticleSource('');
-    setAiArticleDirection('');
+    setAiArticleHooking('fact_reversed');
     setAiArticleTitles([]);
     setAiArticleBody('');
     setAiArticleSelectedTitle(null);
@@ -417,7 +440,7 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <button
                   type="button"
-                  onClick={() => { setAiArticleModal(true); setAiArticleTopic(''); setAiArticleQuestions([]); setAiArticleQError(null); setAiArticleQCopied(false); setAiArticleSource(''); setAiArticleDirection(''); setAiArticleTitles([]); setAiArticleBody(''); setAiArticleSelectedTitle(null); setAiArticleError(null); }}
+                  onClick={() => { setAiArticleModal(true); setAiArticleYoutubeLink(''); setAiArticleDirection(''); setAiArticleTopic(''); setAiArticleQCount(5); setAiArticleQuestions([]); setAiArticleQSources([]); setAiArticleQError(null); setAiArticleQCopied(false); setAiArticleHooking('fact_reversed'); setAiArticleTitles([]); setAiArticleBody(''); setAiArticleSelectedTitle(null); setAiArticleError(null); }}
                   disabled={busy}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '6px',
@@ -760,30 +783,69 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
               📋 질문이 복사됐어요! Liner나 유튜브에서 검색 후 소스를 붙여넣으세요
             </div>
           )}
-          <div style={{ backgroundColor: '#1c1a17', border: '1px solid #333', borderRadius: '16px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ backgroundColor: '#1c1a17', border: '1px solid #333', borderRadius: '16px', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {/* 헤더 */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <h2 style={{ color: '#c8a96e', fontSize: '20px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>✨ AI 글 생성</h2>
               <button onClick={() => setAiArticleModal(false)} style={{ background: 'none', border: 'none', color: '#888', fontSize: '22px', cursor: 'pointer', lineHeight: 1 }}>✕</button>
             </div>
 
-            {/* Step 1: 주제 입력 → 리서치 질문 생성 */}
+            {/* Step 1: 소스 입력 */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '16px', backgroundColor: '#111', borderRadius: '12px', border: '1px solid #2a2a2a' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#c8a96e', letterSpacing: '0.1em' }}>STEP 1 — 리서치 질문 생성 (선택사항)</div>
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#c8a96e', letterSpacing: '0.1em' }}>STEP 1 — 소스 입력</div>
+              <div>
+                <label style={{ color: '#aaa', fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '6px' }}>YouTube 링크 <span style={{ color: '#666', fontWeight: 400 }}>(선택)</span></label>
                 <input
                   type="text"
-                  value={aiArticleTopic}
-                  onChange={(e) => setAiArticleTopic(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAiQuestionsGenerate(); } }}
-                  placeholder="예: 일본 자판기"
-                  style={{ flex: 1, backgroundColor: '#1c1a17', border: '1px solid #444', borderRadius: '8px', color: '#eee', fontSize: '14px', padding: '10px 12px', fontFamily: 'inherit', outline: 'none' }}
+                  value={aiArticleYoutubeLink}
+                  onChange={(e) => setAiArticleYoutubeLink(e.target.value)}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  style={{ width: '100%', backgroundColor: '#1c1a17', border: '1px solid #444', borderRadius: '8px', color: '#eee', fontSize: '14px', padding: '10px 12px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
                 />
+              </div>
+              <div>
+                <label style={{ color: '#aaa', fontSize: '12px', fontWeight: 600, display: 'block', marginBottom: '6px' }}>메모 / 방향 <span style={{ color: '#666', fontWeight: 400 }}>(선택)</span></label>
+                <textarea
+                  value={aiArticleDirection}
+                  onChange={(e) => setAiArticleDirection(e.target.value)}
+                  placeholder="예) 일본 특유의 장인정신 각도로 써줘 / 비즈니스 인사이트보다 문화적 재미에 집중해줘"
+                  rows={2}
+                  style={{ width: '100%', backgroundColor: '#1c1a17', border: '1px solid #444', borderRadius: '8px', color: '#eee', fontSize: '14px', padding: '10px 12px', resize: 'vertical', fontFamily: 'inherit', outline: 'none', lineHeight: 1.6, boxSizing: 'border-box' }}
+                />
+              </div>
+            </div>
+
+            {/* Step 2: 리서치 질문 생성 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '16px', backgroundColor: '#111', borderRadius: '12px', border: '1px solid #2a2a2a' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#c8a96e', letterSpacing: '0.1em' }}>STEP 2 — 리서치 질문 생성</div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+                <div style={{ flex: 1 }}>
+                  <input
+                    type="text"
+                    value={aiArticleTopic}
+                    onChange={(e) => setAiArticleTopic(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAiQuestionsGenerate(); } }}
+                    placeholder="주제 입력 (예: 일본 자판기)"
+                    style={{ width: '100%', backgroundColor: '#1c1a17', border: '1px solid #444', borderRadius: '8px', color: '#eee', fontSize: '14px', padding: '10px 12px', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                  {([3, 5, 7] as const).map(n => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setAiArticleQCount(n)}
+                      style={{ padding: '10px 12px', fontSize: '13px', fontWeight: 700, backgroundColor: aiArticleQCount === n ? '#c8a96e' : '#1c1a17', color: aiArticleQCount === n ? '#111' : '#888', border: `1px solid ${aiArticleQCount === n ? '#c8a96e' : '#444'}`, borderRadius: '8px', cursor: 'pointer', transition: 'all 0.15s' }}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
                 <button
                   type="button"
                   onClick={handleAiQuestionsGenerate}
                   disabled={aiArticleQLoading}
-                  style={{ padding: '10px 16px', fontSize: '13px', fontWeight: 700, backgroundColor: aiArticleQLoading ? '#444' : '#2a2418', color: '#c8a96e', border: '1px solid #c8a96e', borderRadius: '8px', cursor: aiArticleQLoading ? 'default' : 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s' }}
+                  style={{ padding: '10px 14px', fontSize: '13px', fontWeight: 700, backgroundColor: aiArticleQLoading ? '#444' : '#2a2418', color: '#c8a96e', border: '1px solid #c8a96e', borderRadius: '8px', cursor: aiArticleQLoading ? 'default' : 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s', flexShrink: 0 }}
                 >
                   {aiArticleQLoading ? <SpinIcon /> : '질문 생성'}
                 </button>
@@ -792,9 +854,9 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
                 <p style={{ color: '#ff8080', fontSize: '13px', margin: 0 }}>{aiArticleQError}</p>
               )}
               {aiArticleQuestions.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#888', fontSize: '12px' }}>아래 질문을 검색해서 소스를 모아보세요</span>
+                    <span style={{ color: '#888', fontSize: '12px' }}>각 질문에 검색한 자료를 붙여넣으세요</span>
                     <button
                       type="button"
                       onClick={() => {
@@ -804,78 +866,82 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
                       }}
                       style={{ background: 'none', border: 'none', color: aiArticleQCopied ? '#c8a96e' : '#666', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}
                     >
-                      {aiArticleQCopied ? '✓ 복사됨' : '전체 복사'}
+                      {aiArticleQCopied ? '✓ 전체 복사됨' : '전체 복사'}
                     </button>
                   </div>
                   {aiArticleQuestions.map((q, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '10px 12px', backgroundColor: '#1c1a17', borderRadius: '8px', border: '1px solid #2a2a2a' }}>
-                      <span style={{ color: '#c8a96e', fontSize: '12px', fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>{i + 1}</span>
-                      <span style={{ color: '#ddd', fontSize: '13px', lineHeight: 1.55, flex: 1 }}>{q}</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          navigator.clipboard.writeText(q);
-                          setAiArticleQItemCopied(i);
-                          setTimeout(() => setAiArticleQItemCopied(null), 1000);
+                    <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '12px', backgroundColor: '#1c1a17', borderRadius: '10px', border: `1px solid ${aiArticleQSources[i]?.trim() ? '#c8a96e44' : '#2a2a2a'}` }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                        <span style={{ color: '#c8a96e', fontSize: '12px', fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>{i + 1}</span>
+                        <span style={{ color: '#ddd', fontSize: '13px', lineHeight: 1.55, flex: 1 }}>{q}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                          {aiArticleQSources[i]?.trim() && <span style={{ color: '#c8a96e', fontSize: '14px' }}>✓</span>}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(q);
+                              setAiArticleQItemCopied(i);
+                              setTimeout(() => setAiArticleQItemCopied(null), 1000);
+                            }}
+                            style={{ background: 'none', border: 'none', color: '#c8a96e', fontSize: '13px', cursor: 'pointer', padding: '0 2px', lineHeight: 1 }}
+                          >
+                            {aiArticleQItemCopied === i ? '✓' : '⎘'}
+                          </button>
+                        </div>
+                      </div>
+                      <textarea
+                        value={aiArticleQSources[i] ?? ''}
+                        onChange={(e) => {
+                          const updated = [...aiArticleQSources];
+                          updated[i] = e.target.value;
+                          setAiArticleQSources(updated);
                         }}
-                        style={{ background: 'none', border: 'none', color: '#c8a96e', fontSize: '13px', cursor: 'pointer', flexShrink: 0, padding: '0 2px', lineHeight: 1, marginTop: '1px' }}
-                      >
-                        {aiArticleQItemCopied === i ? '✓' : '⎘'}
-                      </button>
+                        placeholder="검색 결과, 스크립트, 기사 등 자료 붙여넣기"
+                        rows={3}
+                        style={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '8px', color: '#ccc', fontSize: '13px', padding: '10px 12px', resize: 'vertical', fontFamily: 'inherit', outline: 'none', lineHeight: 1.6 }}
+                      />
                     </div>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Step 2: 원본 소스 */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#c8a96e', letterSpacing: '0.1em', marginBottom: '2px' }}>STEP 2 — 원본 자료 붙여넣기</div>
-              <textarea
-                value={aiArticleSource}
-                onChange={(e) => setAiArticleSource(e.target.value)}
-                placeholder="유튜브 스크립트, 기사, 메모 등 원본 자료를 붙여넣으세요"
-                rows={8}
-                style={{ backgroundColor: '#111', border: '1px solid #444', borderRadius: '10px', color: '#eee', fontSize: '14px', padding: '12px 14px', resize: 'vertical', fontFamily: 'inherit', outline: 'none', lineHeight: 1.6 }}
-              />
-            </div>
-
-            {/* Step 3: 후킹 패턴 */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#c8a96e', letterSpacing: '0.1em', marginBottom: '2px' }}>STEP 3 — 후킹 패턴 선택</div>
-              <label style={{ color: '#ccc', fontSize: '14px', fontWeight: 700 }}>후킹 패턴</label>
+            {/* Step 3: 후킹 패턴 선택 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '16px', backgroundColor: '#111', borderRadius: '12px', border: '1px solid #2a2a2a' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#c8a96e', letterSpacing: '0.1em' }}>STEP 3 — 후킹 패턴 선택</div>
+              <div style={{ fontSize: '11px', color: '#666', fontWeight: 600, marginTop: '-4px' }}>몰랐던 사실 계열</div>
               {([
-                ['external_observer', '외부 관찰자 시점', '예: 일본인이 한국에서 자판기를 찾는다'],
-                ['number_reversal', '숫자 반전', '예: 줄었는데 매출은 늘었다'],
-                ['origin_story', '탄생 비화', '예: 비웃음을 받았던 햇반'],
+                ['fact_reversed', '사실은 달랐다', '우리가 알던 것과 반대인 사실을 폭로'],
+                ['reason_hidden', '이유가 있었다', '당연한 것 뒤에 숨겨진 진짜 이유'],
+                ['korea_only_missing', '한국만 모른다', '세계는 아는데 한국만 모르는 것'],
               ] as const).map(([value, label, example]) => (
-                <label key={value} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', padding: '12px', borderRadius: '10px', backgroundColor: aiArticleHooking === value ? '#2a2418' : 'transparent', border: `1px solid ${aiArticleHooking === value ? '#c8a96e' : '#333'}`, transition: 'all 0.15s' }}>
-                  <input
-                    type="radio"
-                    name="hooking"
-                    value={value}
-                    checked={aiArticleHooking === value}
-                    onChange={() => setAiArticleHooking(value)}
-                    style={{ marginTop: '2px', accentColor: '#c8a96e', flexShrink: 0 }}
-                  />
-                  <div>
-                    <div style={{ color: '#eee', fontSize: '14px', fontWeight: 700 }}>{label}</div>
-                    <div style={{ color: '#888', fontSize: '12px', marginTop: '2px' }}>{example}</div>
-                  </div>
+                <label key={value} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', padding: '10px 12px', borderRadius: '10px', backgroundColor: aiArticleHooking === value ? '#2a2418' : 'transparent', border: `1px solid ${aiArticleHooking === value ? '#c8a96e' : '#333'}`, transition: 'all 0.15s' }}>
+                  <input type="radio" name="hooking" value={value} checked={aiArticleHooking === value} onChange={() => setAiArticleHooking(value)} style={{ marginTop: '2px', accentColor: '#c8a96e', flexShrink: 0 }} />
+                  <div><div style={{ color: '#eee', fontSize: '13px', fontWeight: 700 }}>{label}</div><div style={{ color: '#888', fontSize: '12px', marginTop: '2px' }}>{example}</div></div>
                 </label>
               ))}
-            </div>
-
-            {/* 편집 방향 */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ color: '#ccc', fontSize: '14px', fontWeight: 700 }}>편집 방향 메모 <span style={{ color: '#666', fontWeight: 400 }}>(선택사항)</span></label>
-              <textarea
-                value={aiArticleDirection}
-                onChange={(e) => setAiArticleDirection(e.target.value)}
-                placeholder="예) 햇반이 처음엔 실패작 취급 받았다는 걸 강조해줘 / 일본 특유의 장인정신 각도로 써줘 / 비즈니스 인사이트보다 문화적 재미에 집중해줘"
-                rows={3}
-                style={{ backgroundColor: '#111', border: '1px solid #444', borderRadius: '10px', color: '#eee', fontSize: '14px', padding: '12px 14px', resize: 'vertical', fontFamily: 'inherit', outline: 'none', lineHeight: 1.6 }}
-              />
+              <div style={{ fontSize: '11px', color: '#666', fontWeight: 600, marginTop: '4px' }}>비교/대조 계열</div>
+              {([
+                ['external_observer', '외부 관찰자 시점', '외국인/제3자 시점으로 본 우리 모습'],
+                ['then_vs_now', '그때 vs 지금', '과거와 현재의 극적인 대비'],
+                ['number_shock', '숫자가 다르다', '통념과 다른 수치로 충격 주기'],
+              ] as const).map(([value, label, example]) => (
+                <label key={value} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', padding: '10px 12px', borderRadius: '10px', backgroundColor: aiArticleHooking === value ? '#2a2418' : 'transparent', border: `1px solid ${aiArticleHooking === value ? '#c8a96e' : '#333'}`, transition: 'all 0.15s' }}>
+                  <input type="radio" name="hooking" value={value} checked={aiArticleHooking === value} onChange={() => setAiArticleHooking(value)} style={{ marginTop: '2px', accentColor: '#c8a96e', flexShrink: 0 }} />
+                  <div><div style={{ color: '#eee', fontSize: '13px', fontWeight: 700 }}>{label}</div><div style={{ color: '#888', fontSize: '12px', marginTop: '2px' }}>{example}</div></div>
+                </label>
+              ))}
+              <div style={{ fontSize: '11px', color: '#666', fontWeight: 600, marginTop: '4px' }}>심리/인사이트 계열</div>
+              {([
+                ['why_fooled', '왜 우리는 속는가', '대중이 오해하거나 착각하는 심리 해부'],
+                ['origin_story', '탄생 비화', '유명한 것의 예상치 못한 기원'],
+                ['nobody_told', '아무도 말 안 해줬다', '중요하지만 아무도 언급 안 한 진실'],
+              ] as const).map(([value, label, example]) => (
+                <label key={value} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer', padding: '10px 12px', borderRadius: '10px', backgroundColor: aiArticleHooking === value ? '#2a2418' : 'transparent', border: `1px solid ${aiArticleHooking === value ? '#c8a96e' : '#333'}`, transition: 'all 0.15s' }}>
+                  <input type="radio" name="hooking" value={value} checked={aiArticleHooking === value} onChange={() => setAiArticleHooking(value)} style={{ marginTop: '2px', accentColor: '#c8a96e', flexShrink: 0 }} />
+                  <div><div style={{ color: '#eee', fontSize: '13px', fontWeight: 700 }}>{label}</div><div style={{ color: '#888', fontSize: '12px', marginTop: '2px' }}>{example}</div></div>
+                </label>
+              ))}
             </div>
 
             {/* 생성하기 버튼 */}
