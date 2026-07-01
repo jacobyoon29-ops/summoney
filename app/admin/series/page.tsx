@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getSeries, createSeries, updateSeries, deleteSeries } from '../actions';
 import type { Series } from '@/lib/supabase';
+
+type UnsplashPhoto = { id: string; urls: { small: string; regular: string }; alt_description: string | null; user: { name: string } };
 
 const dark = '#1c1a17';
 const gold = '#c8a96e';
@@ -26,6 +28,26 @@ export default function SeriesPage() {
   const [slugLoading, setSlugLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [showUnsplash, setShowUnsplash] = useState(false);
+  const [unsplashQuery, setUnsplashQuery] = useState('');
+  const [unsplashResults, setUnsplashResults] = useState<UnsplashPhoto[]>([]);
+  const [unsplashLoading, setUnsplashLoading] = useState(false);
+
+  const searchUnsplash = useCallback(async () => {
+    if (!unsplashQuery.trim()) return;
+    setUnsplashLoading(true);
+    try {
+      const key = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
+      const res = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(unsplashQuery)}&per_page=12&client_id=${key}`);
+      const data = await res.json();
+      setUnsplashResults(data.results ?? []);
+    } catch {
+      setUnsplashResults([]);
+    } finally {
+      setUnsplashLoading(false);
+    }
+  }, [unsplashQuery]);
 
   async function load() {
     setLoading(true);
@@ -131,6 +153,59 @@ export default function SeriesPage() {
         </div>
       </div>
 
+      {/* Unsplash 검색 모달 */}
+      {showUnsplash && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 4000, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ backgroundColor: '#1c1a17', border: '1px solid #333', borderRadius: '16px', width: '100%', maxWidth: '660px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ color: gold, fontSize: '16px', fontWeight: 800, margin: 0 }}>Unsplash 이미지 검색</h3>
+              <button onClick={() => setShowUnsplash(false)} style={{ background: 'none', border: 'none', color: '#888', fontSize: '22px', cursor: 'pointer' }}>✕</button>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+              <input
+                type="text"
+                value={unsplashQuery}
+                onChange={(e) => setUnsplashQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && searchUnsplash()}
+                placeholder="검색어 입력 (영문 권장)"
+                autoFocus
+                style={{ ...inp, flex: 1 }}
+              />
+              <button
+                type="button"
+                onClick={searchUnsplash}
+                disabled={unsplashLoading}
+                style={{ padding: '10px 18px', backgroundColor: gold, color: dark, border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+              >
+                {unsplashLoading ? '검색 중…' : '검색'}
+              </button>
+            </div>
+            <div style={{ overflowY: 'auto', flex: 1 }}>
+              {unsplashResults.length === 0 && !unsplashLoading && (
+                <p style={{ textAlign: 'center', color: '#555', padding: '32px 0', fontSize: '14px' }}>검색 결과가 여기에 표시됩니다</p>
+              )}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                {unsplashResults.map((photo) => (
+                  <div
+                    key={photo.id}
+                    onClick={() => { setCoverImage(photo.urls.regular); setShowUnsplash(false); }}
+                    style={{ aspectRatio: '4/3', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', position: 'relative', border: '2px solid transparent', transition: 'border-color 0.15s' }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = gold; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'transparent'; }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={photo.urls.small} alt={photo.alt_description ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '4px 6px', background: 'rgba(0,0,0,0.5)', fontSize: '10px', color: 'rgba(255,255,255,0.7)' }}>
+                      {photo.user.name}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 폼 모달 */}
       {showForm && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 3000, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
@@ -171,7 +246,20 @@ export default function SeriesPage() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ color: '#ccc', fontSize: '13px', fontWeight: 700 }}>커버 이미지 URL <span style={{ color: '#555', fontWeight: 400 }}>(선택)</span></label>
-              <input value={coverImage} onChange={(e) => setCoverImage(e.target.value)} placeholder="https://images.unsplash.com/..." style={inp} />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input value={coverImage} onChange={(e) => setCoverImage(e.target.value)} placeholder="https://images.unsplash.com/..." style={{ ...inp, flex: 1 }} />
+                <button
+                  type="button"
+                  onClick={() => { setShowUnsplash(true); setUnsplashQuery(''); setUnsplashResults([]); }}
+                  style={{ padding: '10px 14px', backgroundColor: '#2a2418', color: gold, border: `1px solid ${gold}`, borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                >
+                  이미지 검색
+                </button>
+              </div>
+              {coverImage && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={coverImage} alt="미리보기" style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px', marginTop: '4px' }} />
+              )}
             </div>
 
             {error && <p style={{ color: '#ff8080', fontSize: '13px', margin: 0 }}>{error}</p>}
