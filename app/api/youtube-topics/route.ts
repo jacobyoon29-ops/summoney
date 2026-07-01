@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: '로그인이 필요합니다.' }, { status: 401 });
   }
 
-  const { category, minViewCount } = (await req.json()) as { category: Category; minViewCount?: number };
+  const { category, period } = (await req.json()) as { category: Category; period?: 'week' | 'month' | 'all' };
   if (!KEYWORDS[category]) {
     return NextResponse.json({ error: '유효하지 않은 카테고리입니다.' }, { status: 400 });
   }
@@ -34,7 +34,17 @@ export async function POST(req: NextRequest) {
   const selectedKeyword = keywordList[Math.floor(Math.random() * keywordList.length)];
   console.log(`[youtube-topics] 선택된 키워드: ${selectedKeyword}`);
 
-  const searchParams = new URLSearchParams({
+  const now = new Date();
+  let publishedAfter: string | null = null;
+  if (period === 'week') {
+    const d = new Date(now); d.setDate(d.getDate() - 7);
+    publishedAfter = d.toISOString();
+  } else if (period === 'month') {
+    const d = new Date(now); d.setDate(d.getDate() - 30);
+    publishedAfter = d.toISOString();
+  }
+
+  const searchParamsObj: Record<string, string> = {
     part: 'snippet',
     type: 'video',
     videoDuration: 'short',
@@ -44,7 +54,10 @@ export async function POST(req: NextRequest) {
     maxResults: '30',
     q: selectedKeyword,
     key: youtubeKey,
-  });
+  };
+  if (publishedAfter) searchParamsObj.publishedAfter = publishedAfter;
+
+  const searchParams = new URLSearchParams(searchParamsObj);
 
   const searchUrl = `https://www.googleapis.com/youtube/v3/search?${searchParams}`;
   console.log(`[youtube-topics] Search URL: ${searchUrl}`);
@@ -113,9 +126,8 @@ export async function POST(req: NextRequest) {
       videoId: item.id.videoId,
       url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
     }))
-    .filter((t) => t.viewCount >= (minViewCount ?? 0))
     .sort((a, b) => b.viewCount - a.viewCount);
-  console.log(`[youtube-topics] 필터링 전: ${items.length}개 → 후: ${filtered.length}개 (minViewCount: ${minViewCount ?? 0})`);
+  console.log(`[youtube-topics] 필터링 전: ${items.length}개 → 후: ${filtered.length}개 (period: ${period ?? 'all'})`);
 
   if (filtered.length === 0) {
     return NextResponse.json({ topics: [] });

@@ -4,6 +4,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 type Category = '다른나라' | '경제' | '사람';
+type Period = 'week' | 'month' | 'all';
+
+const PERIOD_LABELS: Record<Period, string> = {
+  week: '이번 주',
+  month: '이번 달',
+  all: '전체 기간',
+};
 
 interface Topic {
   title: string;
@@ -31,7 +38,7 @@ export default function TopicsPage() {
   const [activeTab, setActiveTab] = useState<Category>('다른나라');
   const [loading, setLoading] = useState(false);
   const [topics, setTopics] = useState<Topic[] | null>(null);
-  const [minViewCount, setMinViewCount] = useState<number>(0);
+  const [period, setPeriod] = useState<Period>('week');
 
   async function discover() {
     setLoading(true);
@@ -40,7 +47,7 @@ export default function TopicsPage() {
       const res = await fetch('/api/youtube-topics', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category: activeTab, minViewCount }),
+        body: JSON.stringify({ category: activeTab, period }),
       });
       const data = await res.json();
       setTopics(data.topics ?? []);
@@ -97,73 +104,88 @@ export default function TopicsPage() {
           ))}
         </div>
 
-        {/* 조회수 기준 드롭다운 */}
-        <div style={{ marginBottom: '20px' }}>
-          <select
-            value={minViewCount}
-            onChange={(e) => setMinViewCount(Number(e.target.value))}
-            style={{
-              backgroundColor: '#1c1a17',
-              border: '1px solid #c8a96e',
-              borderRadius: '8px',
-              color: '#c8a96e',
-              fontSize: '14px',
-              fontWeight: 600,
-              padding: '8px 14px',
-              cursor: 'pointer',
-              outline: 'none',
-            }}
-          >
-            <option value={0}>전체</option>
-            <option value={10000}>1만 이상</option>
-            <option value={50000}>5만 이상</option>
-            <option value={100000}>10만 이상</option>
-            <option value={300000}>30만 이상</option>
-            <option value={500000}>50만 이상</option>
-          </select>
+        {/* 기간 필터 */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+          {(['week', 'month', 'all'] as Period[]).map((p) => (
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              style={{
+                padding: '7px 16px',
+                borderRadius: '8px',
+                border: period === p ? '1px solid #c8a96e' : '1px solid #444',
+                backgroundColor: period === p ? 'rgba(200,169,110,0.15)' : 'transparent',
+                color: period === p ? '#c8a96e' : '#888',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              {PERIOD_LABELS[p]}
+            </button>
+          ))}
         </div>
 
         {/* 발굴 버튼 */}
-        <button
-          onClick={discover}
-          disabled={loading}
-          style={{
-            padding: '10px 28px',
-            backgroundColor: loading ? '#555' : '#c8a96e',
-            color: '#1c1a17',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '15px',
-            fontWeight: 800,
-            cursor: loading ? 'not-allowed' : 'pointer',
-            marginBottom: '32px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          {loading && (
-            <span
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '32px' }}>
+          <button
+            onClick={discover}
+            disabled={loading}
+            style={{
+              padding: '10px 28px',
+              backgroundColor: loading ? '#555' : '#c8a96e',
+              color: '#1c1a17',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '15px',
+              fontWeight: 800,
+              cursor: loading ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            {loading && (
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid #1c1a17',
+                  borderTopColor: 'transparent',
+                  borderRadius: '50%',
+                  animation: 'spin 0.7s linear infinite',
+                }}
+              />
+            )}
+            {loading ? '발굴 중...' : '소재 발굴'}
+          </button>
+          {topics !== null && (
+            <button
+              onClick={discover}
+              disabled={loading}
               style={{
-                display: 'inline-block',
-                width: '16px',
-                height: '16px',
-                border: '2px solid #1c1a17',
-                borderTopColor: 'transparent',
-                borderRadius: '50%',
-                animation: 'spin 0.7s linear infinite',
+                padding: '10px 20px',
+                backgroundColor: 'transparent',
+                color: '#c8a96e',
+                border: '1px solid #c8a96e',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: 700,
+                cursor: loading ? 'not-allowed' : 'pointer',
               }}
-            />
+            >
+              다시 발굴 🔄
+            </button>
           )}
-          {loading ? '발굴 중...' : '소재 발굴'}
-        </button>
+        </div>
 
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
         {/* 결과 */}
         {topics !== null && topics.length === 0 && (
           <p style={{ color: '#888', fontSize: '15px' }}>
-            조회수 {minViewCount >= 10000 ? (minViewCount/10000)+'만' : minViewCount} 이상 소재가 없어요. 다시 발굴해보세요.
+            {PERIOD_LABELS[period]} 소재가 없어요. 다시 발굴하거나 기간을 넓혀보세요.
           </p>
         )}
 
