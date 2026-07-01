@@ -3,6 +3,7 @@ import type { Article, Series } from '@/lib/supabase';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import SeriesArticleCard from './SeriesArticleCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,17 +41,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     description: series.description ?? `${series.name} 시리즈 — 줍줍줍`,
   };
 }
-
-const CATEGORY_COLORS: Record<string, string> = {
-  '다른나라 줍줍줍': '#3B82F6',
-  '경제 줍줍줍': '#10B981',
-  '사람 줍줍줍': '#F59E0B',
-};
-const CATEGORY_BG: Record<string, string> = {
-  '다른나라 줍줍줍': '#1a2235',
-  '경제 줍줍줍': '#162a22',
-  '사람 줍줍줍': '#2a2212',
-};
 
 export default async function SeriesPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -111,43 +101,3 @@ export default async function SeriesPage({ params }: { params: Promise<{ slug: s
   );
 }
 
-function SeriesArticleCard({ article }: { article: Article }) {
-  const date = (article.published_at ?? article.created_at).slice(0, 10).replace(/-/g, '.');
-  const catColor = CATEGORY_COLORS[article.category] ?? '#888';
-  const catBg = CATEGORY_BG[article.category] ?? '#222';
-
-  return (
-    <Link href={`/article/${article.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-      <div style={{
-        backgroundColor: '#242118',
-        border: '1px solid #333',
-        borderRadius: '12px',
-        overflow: 'hidden',
-        transition: 'border-color 0.2s, transform 0.2s',
-      }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = '#c8a96e'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)'; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = '#333'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'; }}
-      >
-        <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: catBg, overflow: 'hidden' }}>
-          {article.cover_image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={article.cover_image} alt={article.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          ) : (
-            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: '#444', fontSize: '12px', letterSpacing: '0.1em' }}>{article.category}</span>
-            </div>
-          )}
-        </div>
-        <div style={{ padding: '16px' }}>
-          <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px', backgroundColor: catColor, color: '#fff', display: 'inline-block', marginBottom: '8px' }}>
-            {article.category}
-          </span>
-          <h2 style={{ color: '#f0e8d6', fontSize: '15px', fontWeight: 700, lineHeight: 1.5, margin: '0 0 8px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-            {article.title}
-          </h2>
-          <p style={{ color: '#666', fontSize: '12px', margin: 0 }}>{date}</p>
-        </div>
-      </div>
-    </Link>
-  );
-}
