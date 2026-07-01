@@ -12,7 +12,10 @@ export default function GuidePage() {
             <Li><Gold>경제 줍줍줍</Gold> — 기업·브랜드·창업·가격 심리 등 비즈니스 소재</Li>
             <Li><Gold>사람 줍줍줍</Gold> — CEO·창업자·성공 인물 비하인드 소재</Li>
           </ul>
-          <P>조회수 필터 드롭다운으로 &quot;5만 이상&quot; 등 원하는 기준을 선택하면 Claude가 줍줍줍 적합 소재만 골라줘요.</P>
+          <SubTitle>기간 필터</SubTitle>
+          <P><Gold>이번 주 / 이번 달 / 전체 기간</Gold> 중 하나를 선택해 검색 범위를 좁힐 수 있어요. &quot;이번 주&quot;는 최근 7일, &quot;이번 달&quot;은 최근 30일 이내 업로드된 영상만 가져와요.</P>
+          <SubTitle>소재 발굴 & 다시 발굴</SubTitle>
+          <P><Gold>소재 발굴</Gold> 버튼을 누르면 Claude가 줍줍줍 적합 소재만 골라줘요. 결과가 마음에 안 들면 <Gold>🔄 다시 발굴</Gold> 버튼으로 재검색할 수 있어요. 같은 카테고리·기간이지만 키워드가 랜덤으로 바뀌어 다른 결과가 나와요.</P>
           <P><Gold>이 소재로 글쓰기</Gold> 버튼을 누르면 글쓰기 화면으로 이동해요.</P>
         </Section>
 
@@ -33,18 +36,20 @@ export default function GuidePage() {
         </Section>
 
         <Section title="3. 시리즈 / 특집 기능">
-          <P>여러 글을 하나의 테마로 묶는 시리즈를 만들 수 있어요.</P>
+          <P>여러 글을 하나의 테마로 묶는 시리즈를 만들 수 있어요. 시리즈에 소속된 글은 홈페이지 카드에 골드 배지로 표시돼요.</P>
           <SubTitle>시리즈 만들기</SubTitle>
           <ol>
             <Li>상단 네비게이션의 <Gold>시리즈</Gold> 메뉴 클릭</Li>
             <Li><Gold>+ 새 시리즈</Gold> 버튼 클릭</Li>
-            <Li>시리즈 이름 입력 → <Gold>AI 생성</Gold>으로 영문 슬러그 자동 생성 (수정 가능)</Li>
-            <Li>설명·커버 이미지 URL 입력 후 저장</Li>
+            <Li>시리즈 이름 입력 → <Gold>AI 생성</Gold>으로 영문 슬러그 자동 생성 (직접 수정 가능)</Li>
+            <Li><Gold>이미지 검색</Gold> 버튼으로 Unsplash에서 커버 이미지 선택</Li>
+            <Li>설명 입력 후 <Gold>저장</Gold></Li>
           </ol>
           <SubTitle>글에 시리즈 배정하기</SubTitle>
-          <P>글쓰기/수정 화면의 <Gold>시리즈 / 특집</Gold> 드롭다운에서 원하는 시리즈를 선택하면 돼요. 홈페이지 카드에 골드 배지가 표시되고, 카드 배지 클릭 시 시리즈 페이지로 이동해요.</P>
-          <SubTitle>시리즈 공개 페이지</SubTitle>
-          <P><code style={{ backgroundColor: '#2a2418', color: '#c8a96e', padding: '2px 6px', borderRadius: '4px', fontSize: '13px' }}>/series/[슬러그]</code> 경로로 자동 생성돼요. 히어로 영역 + 소속 글 그리드가 표시됩니다.</P>
+          <P>글쓰기/수정 화면 하단의 <Gold>시리즈 / 특집</Gold> 드롭다운에서 원하는 시리즈를 선택하면 돼요. 저장하면 홈페이지 카드에 골드 배지가 표시되고, 배지 클릭 시 시리즈 페이지로 이동해요.</P>
+          <SubTitle>시리즈 공개 페이지 & 홈 노출</SubTitle>
+          <P><code style={{ backgroundColor: '#2a2418', color: '#c8a96e', padding: '2px 6px', borderRadius: '4px', fontSize: '13px' }}>jupjupjup.com/series/[슬러그]</code> 경로로 시리즈 페이지가 자동 생성돼요. 소속 글 그리드가 표시됩니다.</P>
+          <P>시리즈가 하나라도 있으면 홈페이지 상단에 <Gold>SERIES</Gold> 섹션이 자동으로 노출돼요. 시리즈 배너를 클릭하면 해당 시리즈 페이지로 이동해요.</P>
         </Section>
 
         <Section title="4. AI 자동완성 (SEO 메타)">
