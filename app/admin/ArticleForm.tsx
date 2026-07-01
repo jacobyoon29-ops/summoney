@@ -850,6 +850,9 @@ export default function ArticleForm({ initial }: { initial?: Article }) {
                   {aiArticleQLoading ? <SpinIcon /> : '질문 생성'}
                 </button>
               </div>
+              <p style={{ color: '#c8a96e', fontSize: '12px', margin: 0 }}>
+                {aiArticleQCount === 3 ? '가벼운 소재, 빠르게 쓸 때' : aiArticleQCount === 5 ? '대부분의 글에 적합 (기본)' : '복잡한 주제, 깊이 있게 쓸 때'}
+              </p>
               {aiArticleQError && (
                 <p style={{ color: '#ff8080', fontSize: '13px', margin: 0 }}>{aiArticleQError}</p>
               )}
