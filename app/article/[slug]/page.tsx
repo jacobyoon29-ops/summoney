@@ -87,20 +87,47 @@ async function getSeriesById(seriesId: string): Promise<{ name: string; slug: st
   }
 }
 
-async function getRelatedArticles(ids: string[]): Promise<Article[]> {
-  if (!ids.length) return [];
+async function getTagBasedRelated(article: Article): Promise<Article[]> {
   try {
     const supabase = getAdminClient();
-    const { data } = await supabase
-      .from('articles')
-      .select('*')
-      .in('id', ids)
-      .eq('is_published', true);
-    if (!data) return [];
-    // related_ids 순서 유지
-    return ids
-      .map((id) => data.find((a) => a.id === id))
-      .filter((a): a is Article => !!a);
+    const tags: string[] = article.tags ?? [];
+    let candidates: Article[] = [];
+
+    // 1) 태그가 있으면 overlapping 글 우선 조회
+    if (tags.length > 0) {
+      const { data: tagMatches } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('is_published', true)
+        .neq('id', article.id)
+        .overlaps('tags', tags);
+      if (tagMatches && tagMatches.length > 0) {
+        // 겹치는 태그 수 내림차순 정렬
+        candidates = (tagMatches as Article[]).sort((a, b) => {
+          const aTags: string[] = a.tags ?? [];
+          const bTags: string[] = b.tags ?? [];
+          const aCount = aTags.filter((t) => tags.includes(t)).length;
+          const bCount = bTags.filter((t) => tags.includes(t)).length;
+          return bCount - aCount;
+        });
+      }
+    }
+
+    // 2) 3개 미만이면 같은 카테고리 글로 보조
+    if (candidates.length < 3) {
+      const excludeIds = [article.id, ...candidates.map((a) => a.id)];
+      const { data: catMatches } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('is_published', true)
+        .eq('category', article.category)
+        .not('id', 'in', `(${excludeIds.join(',')})`)
+        .order('published_at', { ascending: false })
+        .limit(3 - candidates.length);
+      if (catMatches) candidates = [...candidates, ...(catMatches as Article[])];
+    }
+
+    return candidates.slice(0, 3);
   } catch {
     return [];
   }
@@ -129,8 +156,8 @@ export default async function ArticlePage({
   const article = await getPublishedBySlug(slug);
   if (!article) notFound();
 
-  const [related, seriesArticles, seriesInfo] = await Promise.all([
-    getRelatedArticles(article.related_ids ?? []),
+  const [tagRelated, seriesArticles, seriesInfo] = await Promise.all([
+    getTagBasedRelated(article),
     article.series_id ? getArticlesBySeries(article.series_id, article.id) : Promise.resolve([]),
     article.series_id ? getSeriesById(article.series_id) : Promise.resolve(null),
   ]);
@@ -278,110 +305,47 @@ export default async function ArticlePage({
         />
       )}
 
-      {/* 관련 글 섹션 */}
-      {related.length > 0 && (
-        <section
-          style={{
-            borderTop: '1px solid #f0f0f0',
-            backgroundColor: '#fafafa',
-            padding: '48px 20px 64px',
-          }}
-        >
+      {/* 태그 기반 연관 글 섹션 */}
+      {tagRelated.length > 0 && (
+        <section style={{ backgroundColor: '#1c1a17', padding: '48px 20px 64px' }}>
           <div style={{ maxWidth: '720px', margin: '0 auto' }}>
-            <h2
-              style={{
-                fontSize: '18px',
-                fontWeight: 800,
-                color: '#111',
-                letterSpacing: '-0.02em',
-                marginBottom: '24px',
-              }}
-            >
-              관련 글
+            <p style={{ color: '#c8a96e', fontSize: '11px', letterSpacing: '4px', fontWeight: 700, margin: '0 0 8px' }}>MORE</p>
+            <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#f0e8d6', letterSpacing: '-0.02em', margin: '0 0 24px' }}>
+              이런 글도 읽어보세요
             </h2>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: `repeat(${related.length}, 1fr)`,
-                gap: '16px',
-              }}
-            >
-              {related.map((rel) => {
-                const relDate = (rel.published_at ?? rel.created_at).slice(0, 10).replace(/-/g, '.');
-                return (
-                  <Link
-                    key={rel.id}
-                    href={`/article/${rel.slug}`}
-                    style={{ textDecoration: 'none', color: 'inherit' }}
-                  >
-                    <div
-                      style={{
-                        backgroundColor: '#fff',
-                        borderRadius: '14px',
-                        border: '1px solid #f0f0f0',
-                        overflow: 'hidden',
-                        transition: 'box-shadow 0.2s ease',
-                        height: '100%',
-                      }}
-                    >
-                      {rel.cover_image && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={rel.cover_image}
-                          alt={rel.title}
-                          style={{ width: '100%', height: '140px', objectFit: 'cover', display: 'block' }}
-                        />
-                      )}
-                      <div style={{ padding: '16px' }}>
-                        <span
-                          style={{
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            padding: '2px 8px',
-                            borderRadius: '20px',
-                            backgroundColor: CATEGORY_COLORS[rel.category] ?? '#eee',
-                            color: CATEGORY_TEXT[rel.category] ?? '#333',
-                          }}
-                        >
-                          {rel.category}
-                        </span>
-                        <p
-                          style={{
-                            fontSize: '14px',
-                            fontWeight: 700,
-                            color: '#111',
-                            lineHeight: 1.5,
-                            margin: '8px 0 6px',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          {rel.title}
-                        </p>
-                        {rel.summary && (
-                          <p
-                            style={{
-                              fontSize: '12px',
-                              color: '#888',
-                              lineHeight: 1.5,
-                              margin: '0 0 10px',
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
-                            }}
-                          >
-                            {rel.summary}
-                          </p>
-                        )}
-                        <p style={{ fontSize: '11px', color: '#ccc', margin: 0 }}>{relDate}</p>
-                      </div>
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${tagRelated.length}, 1fr)`, gap: '16px' }}>
+              {tagRelated.map((rel) => (
+                <Link key={rel.id} href={`/article/${rel.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <div style={{ backgroundColor: '#2a2825', borderRadius: '12px', border: '1px solid #333', overflow: 'hidden', height: '100%' }}>
+                    {rel.cover_image && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={rel.cover_image}
+                        alt={rel.title}
+                        style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', display: 'block' }}
+                      />
+                    )}
+                    <div style={{ padding: '14px' }}>
+                      <span style={{
+                        fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '20px',
+                        backgroundColor: CATEGORY_COLORS[rel.category] ?? '#555',
+                        color: CATEGORY_TEXT[rel.category] ?? '#fff',
+                        display: 'inline-block', marginBottom: '8px',
+                      }}>
+                        {rel.category}
+                      </span>
+                      <p style={{
+                        fontSize: '14px', fontWeight: 700, color: '#f0e8d6',
+                        lineHeight: 1.5, margin: 0,
+                        display: '-webkit-box', WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                      }}>
+                        {rel.title}
+                      </p>
                     </div>
-                  </Link>
-                );
-              })}
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         </section>
