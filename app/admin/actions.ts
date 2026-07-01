@@ -436,6 +436,51 @@ export async function deleteSeries(id: string): Promise<ActionResult> {
   }
 }
 
+/** 시리즈 소속 글 조회 (sort_order → published_at 순) */
+export async function getSeriesArticles(seriesId: string): Promise<Article[]> {
+  if (!(await isAuthed())) return [];
+  try {
+    const supabase = getAdminClient();
+    const { data } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('series_id', seriesId)
+      .order('sort_order', { ascending: true, nullsFirst: false })
+      .order('published_at', { ascending: true });
+    return (data ?? []) as Article[];
+  } catch {
+    return [];
+  }
+}
+
+/** 여러 글의 sort_order 일괄 업데이트 */
+export async function updateSortOrders(items: { id: string; sort_order: number }[]): Promise<ActionResult> {
+  if (!(await isAuthed())) return { ok: false, error: '로그인이 필요합니다.' };
+  try {
+    const supabase = getAdminClient();
+    for (const item of items) {
+      await supabase.from('articles').update({ sort_order: item.sort_order }).eq('id', item.id);
+    }
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : '오류' };
+  }
+}
+
+/** 여러 글의 published_at 일괄 업데이트 (백데이팅) */
+export async function backdateArticles(items: { id: string; published_at: string }[]): Promise<ActionResult> {
+  if (!(await isAuthed())) return { ok: false, error: '로그인이 필요합니다.' };
+  try {
+    const supabase = getAdminClient();
+    for (const item of items) {
+      await supabase.from('articles').update({ published_at: item.published_at }).eq('id', item.id);
+    }
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : '오류' };
+  }
+}
+
 /** is_featured 토글 */
 export async function toggleFeatured(id: string, current: boolean): Promise<ActionResult> {
   if (!(await isAuthed())) return { ok: false, error: '로그인이 필요합니다.' };

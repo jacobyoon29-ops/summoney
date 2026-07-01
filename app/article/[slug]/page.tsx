@@ -10,6 +10,7 @@ import KakaoShareButton from './KakaoShareButton';
 import HighlightObserver from './HighlightObserver';
 import NumberCountup from './NumberCountup';
 import ProgressBarObserver from './ProgressBarObserver';
+import SeriesSection from './SeriesSection';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,6 +59,34 @@ async function getPublishedBySlug(slug: string): Promise<Article | null> {
   }
 }
 
+async function getArticlesBySeries(seriesId: string, excludeId: string): Promise<Article[]> {
+  try {
+    const supabase = getAdminClient();
+    const { data } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('series_id', seriesId)
+      .eq('is_published', true)
+      .neq('id', excludeId)
+      .order('sort_order', { ascending: true, nullsFirst: false })
+      .order('published_at', { ascending: true })
+      .limit(3);
+    return (data ?? []) as Article[];
+  } catch {
+    return [];
+  }
+}
+
+async function getSeriesById(seriesId: string): Promise<{ name: string; slug: string } | null> {
+  try {
+    const supabase = getAdminClient();
+    const { data } = await supabase.from('series').select('name, slug').eq('id', seriesId).maybeSingle();
+    return data ?? null;
+  } catch {
+    return null;
+  }
+}
+
 async function getRelatedArticles(ids: string[]): Promise<Article[]> {
   if (!ids.length) return [];
   try {
@@ -100,7 +129,11 @@ export default async function ArticlePage({
   const article = await getPublishedBySlug(slug);
   if (!article) notFound();
 
-  const related = await getRelatedArticles(article.related_ids ?? []);
+  const [related, seriesArticles, seriesInfo] = await Promise.all([
+    getRelatedArticles(article.related_ids ?? []),
+    article.series_id ? getArticlesBySeries(article.series_id, article.id) : Promise.resolve([]),
+    article.series_id ? getSeriesById(article.series_id) : Promise.resolve(null),
+  ]);
   const date = (article.published_at ?? article.created_at).slice(0, 10).replace(/-/g, '.');
   const readingTime = calcReadingTime(article.content);
 
@@ -235,6 +268,15 @@ export default async function ArticlePage({
           </div>
         )}
       </article>
+
+      {/* 시리즈 섹션 */}
+      {seriesInfo && seriesArticles.length > 0 && (
+        <SeriesSection
+          seriesName={seriesInfo.name}
+          seriesSlug={seriesInfo.slug}
+          articles={seriesArticles}
+        />
+      )}
 
       {/* 관련 글 섹션 */}
       {related.length > 0 && (

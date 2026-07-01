@@ -75,5 +75,6 @@ export type Article = {
   star_count: number;
   is_featured: boolean;
   series_id: string | null;
+  sort_order: number | null;
   created_at: string;
 };

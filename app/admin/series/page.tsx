@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { getSeries, createSeries, updateSeries, deleteSeries } from '../actions';
-import type { Series } from '@/lib/supabase';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { getSeries, createSeries, updateSeries, deleteSeries, getSeriesArticles, updateSortOrders, backdateArticles } from '../actions';
+import type { Series, Article } from '@/lib/supabase';
 
 type UnsplashPhoto = { id: string; urls: { small: string; regular: string }; alt_description: string | null; user: { name: string } };
 
@@ -16,11 +16,11 @@ const inp: React.CSSProperties = {
 
 export default function SeriesPage() {
   const [list, setList] = useState<Series[]>([]);
-  const [articleCounts, setArticleCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [editTarget, setEditTarget] = useState<Series | null>(null);
   const [showForm, setShowForm] = useState(false);
 
+  // Form state
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [description, setDescription] = useState('');
@@ -29,25 +29,29 @@ export default function SeriesPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Unsplash state
   const [showUnsplash, setShowUnsplash] = useState(false);
   const [unsplashQuery, setUnsplashQuery] = useState('');
   const [unsplashResults, setUnsplashResults] = useState<UnsplashPhoto[]>([]);
   const [unsplashLoading, setUnsplashLoading] = useState(false);
 
-  const searchUnsplash = useCallback(async () => {
-    if (!unsplashQuery.trim()) return;
-    setUnsplashLoading(true);
-    try {
-      const key = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
-      const res = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(unsplashQuery)}&per_page=12&client_id=${key}`);
-      const data = await res.json();
-      setUnsplashResults(data.results ?? []);
-    } catch {
-      setUnsplashResults([]);
-    } finally {
-      setUnsplashLoading(false);
-    }
-  }, [unsplashQuery]);
+  // Expanded series state
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedArticles, setExpandedArticles] = useState<Article[]>([]);
+  const [loadingArticles, setLoadingArticles] = useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
+  const [orderSaved, setOrderSaved] = useState(false);
+
+  // Drag-to-reorder
+  const dragIdx = useRef<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+
+  // Backdate state
+  const [showBackdate, setShowBackdate] = useState(false);
+  const [backdateStart, setBackdateStart] = useState('');
+  const [backdateInterval, setBackdateInterval] = useState(3);
+  const [showBackdateConfirm, setShowBackdateConfirm] = useState(false);
+  const [backdating, setBackdating] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -106,8 +110,88 @@ export default function SeriesPage() {
   async function handleDelete(id: string, seriesName: string) {
     if (!confirm(`"${seriesName}" 시리즈를 삭제할까요? 소속 글의 시리즈 배정은 해제됩니다.`)) return;
     await deleteSeries(id);
+    if (expandedId === id) { setExpandedId(null); setExpandedArticles([]); }
     load();
   }
+
+  const searchUnsplash = useCallback(async () => {
+    if (!unsplashQuery.trim()) return;
+    setUnsplashLoading(true);
+    try {
+      const key = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
+      const res = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(unsplashQuery)}&per_page=12&client_id=${key}`);
+      const data = await res.json();
+      setUnsplashResults(data.results ?? []);
+    } catch {
+      setUnsplashResults([]);
+    } finally {
+      setUnsplashLoading(false);
+    }
+  }, [unsplashQuery]);
+
+  async function toggleExpand(seriesId: string) {
+    if (expandedId === seriesId) {
+      setExpandedId(null);
+      setExpandedArticles([]);
+      return;
+    }
+    setExpandedId(seriesId);
+    setLoadingArticles(true);
+    setOrderSaved(false);
+    const articles = await getSeriesArticles(seriesId);
+    setExpandedArticles(articles);
+    setLoadingArticles(false);
+  }
+
+  function handleDragStart(idx: number) {
+    dragIdx.current = idx;
+  }
+
+  function handleDragOver(e: React.DragEvent, idx: number) {
+    e.preventDefault();
+    setDragOverIdx(idx);
+  }
+
+  function handleDrop(idx: number) {
+    setDragOverIdx(null);
+    if (dragIdx.current === null || dragIdx.current === idx) { dragIdx.current = null; return; }
+    const next = [...expandedArticles];
+    const [moved] = next.splice(dragIdx.current, 1);
+    next.splice(idx, 0, moved);
+    setExpandedArticles(next);
+    dragIdx.current = null;
+    setOrderSaved(false);
+  }
+
+  async function saveOrder() {
+    setSavingOrder(true);
+    await updateSortOrders(expandedArticles.map((a, i) => ({ id: a.id, sort_order: i + 1 })));
+    setSavingOrder(false);
+    setOrderSaved(true);
+  }
+
+  function getBackdatePreview() {
+    if (!backdateStart) return [];
+    return expandedArticles.map((a, i) => {
+      const d = new Date(backdateStart + 'T09:00:00+09:00');
+      d.setDate(d.getDate() + i * backdateInterval);
+      return { id: a.id, title: a.title, published_at: d.toISOString(), dateLabel: d.toISOString().slice(0, 10) };
+    });
+  }
+
+  async function applyBackdate() {
+    setBackdating(true);
+    await backdateArticles(getBackdatePreview().map(p => ({ id: p.id, published_at: p.published_at })));
+    setBackdating(false);
+    setShowBackdateConfirm(false);
+    setShowBackdate(false);
+    if (expandedId) {
+      const articles = await getSeriesArticles(expandedId);
+      setExpandedArticles(articles);
+    }
+  }
+
+  const preview = getBackdatePreview();
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: dark, fontFamily: '"Pretendard", "Apple SD Gothic Neo", sans-serif', padding: '32px 20px 80px' }}>
@@ -120,34 +204,105 @@ export default function SeriesPage() {
         </div>
 
         {loading && <p style={{ color: '#888' }}>불러오는 중...</p>}
-
         {!loading && list.length === 0 && (
           <p style={{ color: '#888', fontSize: '15px' }}>시리즈가 없어요. 새 시리즈를 만들어보세요.</p>
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {list.map((s) => (
-            <div key={s.id} style={{ border: '1px solid #333', borderRadius: '10px', padding: '16px 20px', backgroundColor: '#242118', display: 'flex', alignItems: 'center', gap: '16px' }}>
-              {s.cover_image && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={s.cover_image} alt={s.name} style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '8px', flexShrink: 0 }} />
+            <div key={s.id} style={{ border: `1px solid ${expandedId === s.id ? gold : '#333'}`, borderRadius: '10px', overflow: 'hidden', backgroundColor: '#242118', transition: 'border-color 0.2s' }}>
+              {/* 시리즈 헤더 */}
+              <div
+                style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer' }}
+                onClick={() => toggleExpand(s.id)}
+              >
+                {s.cover_image && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={s.cover_image} alt={s.name} style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '8px', flexShrink: 0 }} />
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ color: '#f0e8d6', fontSize: '15px', fontWeight: 700, margin: '0 0 4px' }}>{s.name}</p>
+                  <p style={{ color: '#666', fontSize: '12px', margin: '0 0 2px' }}>/{s.slug}</p>
+                  {s.description && <p style={{ color: '#888', fontSize: '13px', margin: 0 }}>{s.description}</p>}
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
+                  <a href={`/series/${s.slug}`} target="_blank" rel="noopener noreferrer" style={{ padding: '6px 12px', border: '1px solid #333', borderRadius: '7px', color: gold, fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}>
+                    보기 ↗
+                  </a>
+                  <button onClick={() => openEdit(s)} style={{ padding: '6px 12px', border: `1px solid ${gold}`, borderRadius: '7px', color: gold, fontSize: '12px', fontWeight: 600, backgroundColor: 'transparent', cursor: 'pointer' }}>
+                    수정
+                  </button>
+                  <button onClick={() => handleDelete(s.id, s.name)} style={{ padding: '6px 12px', border: '1px solid #555', borderRadius: '7px', color: '#888', fontSize: '12px', fontWeight: 600, backgroundColor: 'transparent', cursor: 'pointer' }}>
+                    삭제
+                  </button>
+                </div>
+                <span style={{ color: expandedId === s.id ? gold : '#555', fontSize: '14px', flexShrink: 0, transition: 'color 0.2s' }}>
+                  {expandedId === s.id ? '▲' : '▼'}
+                </span>
+              </div>
+
+              {/* 펼쳐진 글 목록 */}
+              {expandedId === s.id && (
+                <div style={{ borderTop: '1px solid #333', padding: '16px 20px' }}>
+                  {loadingArticles && <p style={{ color: '#888', fontSize: '13px', margin: 0 }}>불러오는 중...</p>}
+
+                  {!loadingArticles && expandedArticles.length === 0 && (
+                    <p style={{ color: '#666', fontSize: '13px', margin: 0 }}>이 시리즈에 소속된 글이 없어요.</p>
+                  )}
+
+                  {!loadingArticles && expandedArticles.length > 0 && (
+                    <>
+                      <p style={{ color: '#666', fontSize: '12px', margin: '0 0 10px' }}>⠿ 드래그로 순서를 변경하고 저장하세요.</p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {expandedArticles.map((a, i) => (
+                          <div
+                            key={a.id}
+                            draggable
+                            onDragStart={() => handleDragStart(i)}
+                            onDragOver={(e) => handleDragOver(e, i)}
+                            onDrop={() => handleDrop(i)}
+                            onDragLeave={() => setDragOverIdx(null)}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '12px',
+                              padding: '10px 12px',
+                              backgroundColor: dragOverIdx === i ? '#2a2418' : dark,
+                              border: `1px solid ${dragOverIdx === i ? gold : '#333'}`,
+                              borderRadius: '8px',
+                              cursor: 'grab',
+                              transition: 'background-color 0.1s, border-color 0.1s',
+                            }}
+                          >
+                            <span style={{ color: '#555', fontSize: '18px', cursor: 'grab', flexShrink: 0, lineHeight: 1 }}>⠿</span>
+                            <span style={{ color: gold, fontSize: '12px', fontWeight: 700, minWidth: '20px', flexShrink: 0 }}>{i + 1}</span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <p style={{ color: '#f0e8d6', fontSize: '13px', fontWeight: 600, margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.title}</p>
+                              <p style={{ color: '#666', fontSize: '11px', margin: 0 }}>
+                                {a.is_published ? (a.published_at ?? '').slice(0, 10) : '미발행'}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '10px', marginTop: '14px' }}>
+                        <button
+                          onClick={saveOrder}
+                          disabled={savingOrder}
+                          style={{ padding: '8px 20px', backgroundColor: orderSaved ? '#2a3d2a' : (savingOrder ? '#555' : gold), color: orderSaved ? '#7ecf7e' : dark, border: orderSaved ? '1px solid #7ecf7e' : 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: savingOrder ? 'not-allowed' : 'pointer' }}
+                        >
+                          {savingOrder ? '저장 중...' : orderSaved ? '저장됨 ✓' : '순서 저장'}
+                        </button>
+                        <button
+                          onClick={() => { setShowBackdate(true); setBackdateStart(''); setBackdateInterval(3); }}
+                          style={{ padding: '8px 20px', backgroundColor: 'transparent', color: gold, border: `1px solid ${gold}`, borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
+                        >
+                          일괄 백데이팅
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ color: '#f0e8d6', fontSize: '15px', fontWeight: 700, margin: '0 0 4px' }}>{s.name}</p>
-                <p style={{ color: '#666', fontSize: '12px', margin: '0 0 2px' }}>/{s.slug}</p>
-                {s.description && <p style={{ color: '#888', fontSize: '13px', margin: 0 }}>{s.description}</p>}
-              </div>
-              <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                <a href={`/series/${s.slug}`} target="_blank" rel="noopener noreferrer" style={{ padding: '6px 12px', border: '1px solid #333', borderRadius: '7px', color: gold, fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}>
-                  보기 ↗
-                </a>
-                <button onClick={() => openEdit(s)} style={{ padding: '6px 12px', border: `1px solid ${gold}`, borderRadius: '7px', color: gold, fontSize: '12px', fontWeight: 600, backgroundColor: 'transparent', cursor: 'pointer' }}>
-                  수정
-                </button>
-                <button onClick={() => handleDelete(s.id, s.name)} style={{ padding: '6px 12px', border: '1px solid #555', borderRadius: '7px', color: '#888', fontSize: '12px', fontWeight: 600, backgroundColor: 'transparent', cursor: 'pointer' }}>
-                  삭제
-                </button>
-              </div>
             </div>
           ))}
         </div>
@@ -156,27 +311,14 @@ export default function SeriesPage() {
       {/* Unsplash 검색 모달 */}
       {showUnsplash && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 4000, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div style={{ backgroundColor: '#1c1a17', border: '1px solid #333', borderRadius: '16px', width: '100%', maxWidth: '660px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', padding: '24px' }}>
+          <div style={{ backgroundColor: dark, border: '1px solid #333', borderRadius: '16px', width: '100%', maxWidth: '660px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', padding: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ color: gold, fontSize: '16px', fontWeight: 800, margin: 0 }}>Unsplash 이미지 검색</h3>
               <button onClick={() => setShowUnsplash(false)} style={{ background: 'none', border: 'none', color: '#888', fontSize: '22px', cursor: 'pointer' }}>✕</button>
             </div>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-              <input
-                type="text"
-                value={unsplashQuery}
-                onChange={(e) => setUnsplashQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && searchUnsplash()}
-                placeholder="검색어 입력 (영문 권장)"
-                autoFocus
-                style={{ ...inp, flex: 1 }}
-              />
-              <button
-                type="button"
-                onClick={searchUnsplash}
-                disabled={unsplashLoading}
-                style={{ padding: '10px 18px', backgroundColor: gold, color: dark, border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
-              >
+              <input type="text" value={unsplashQuery} onChange={(e) => setUnsplashQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && searchUnsplash()} placeholder="검색어 입력 (영문 권장)" autoFocus style={{ ...inp, flex: 1 }} />
+              <button type="button" onClick={searchUnsplash} disabled={unsplashLoading} style={{ padding: '10px 18px', backgroundColor: gold, color: dark, border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 {unsplashLoading ? '검색 중…' : '검색'}
               </button>
             </div>
@@ -186,18 +328,14 @@ export default function SeriesPage() {
               )}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                 {unsplashResults.map((photo) => (
-                  <div
-                    key={photo.id}
-                    onClick={() => { setCoverImage(photo.urls.regular); setShowUnsplash(false); }}
+                  <div key={photo.id} onClick={() => { setCoverImage(photo.urls.regular); setShowUnsplash(false); }}
                     style={{ aspectRatio: '4/3', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', position: 'relative', border: '2px solid transparent', transition: 'border-color 0.15s' }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = gold; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'transparent'; }}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={photo.urls.small} alt={photo.alt_description ?? ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '4px 6px', background: 'rgba(0,0,0,0.5)', fontSize: '10px', color: 'rgba(255,255,255,0.7)' }}>
-                      {photo.user.name}
-                    </div>
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '4px 6px', background: 'rgba(0,0,0,0.5)', fontSize: '10px', color: 'rgba(255,255,255,0.7)' }}>{photo.user.name}</div>
                   </div>
                 ))}
               </div>
@@ -206,7 +344,7 @@ export default function SeriesPage() {
         </div>
       )}
 
-      {/* 폼 모달 */}
+      {/* 새 시리즈 / 수정 폼 모달 */}
       {showForm && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 3000, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div style={{ backgroundColor: dark, border: '1px solid #333', borderRadius: '16px', width: '100%', maxWidth: '500px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -223,17 +361,8 @@ export default function SeriesPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ color: '#ccc', fontSize: '13px', fontWeight: 700 }}>URL 슬러그 *</label>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <input
-                  value={slug}
-                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-'))}
-                  placeholder="dictatorship-we-never-knew"
-                  style={{ ...inp, flex: 1 }}
-                />
-                <button
-                  onClick={generateSlug}
-                  disabled={slugLoading || !name.trim()}
-                  style={{ padding: '10px 14px', backgroundColor: slugLoading ? '#333' : '#2a2418', color: gold, border: `1px solid ${gold}`, borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
-                >
+                <input value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-'))} placeholder="dictatorship-we-never-knew" style={{ ...inp, flex: 1 }} />
+                <button onClick={generateSlug} disabled={slugLoading || !name.trim()} style={{ padding: '10px 14px', backgroundColor: slugLoading ? '#333' : '#2a2418', color: gold, border: `1px solid ${gold}`, borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   {slugLoading ? '...' : 'AI 생성'}
                 </button>
               </div>
@@ -248,11 +377,7 @@ export default function SeriesPage() {
               <label style={{ color: '#ccc', fontSize: '13px', fontWeight: 700 }}>커버 이미지 URL <span style={{ color: '#555', fontWeight: 400 }}>(선택)</span></label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input value={coverImage} onChange={(e) => setCoverImage(e.target.value)} placeholder="https://images.unsplash.com/..." style={{ ...inp, flex: 1 }} />
-                <button
-                  type="button"
-                  onClick={() => { setShowUnsplash(true); setUnsplashQuery(''); setUnsplashResults([]); }}
-                  style={{ padding: '10px 14px', backgroundColor: '#2a2418', color: gold, border: `1px solid ${gold}`, borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
-                >
+                <button type="button" onClick={() => { setShowUnsplash(true); setUnsplashQuery(''); setUnsplashResults([]); }} style={{ padding: '10px 14px', backgroundColor: '#2a2418', color: gold, border: `1px solid ${gold}`, borderRadius: '8px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                   이미지 검색
                 </button>
               </div>
@@ -264,13 +389,73 @@ export default function SeriesPage() {
 
             {error && <p style={{ color: '#ff8080', fontSize: '13px', margin: 0 }}>{error}</p>}
 
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              style={{ padding: '12px', backgroundColor: saving ? '#555' : gold, color: dark, border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: 700, cursor: saving ? 'default' : 'pointer' }}
-            >
+            <button onClick={handleSave} disabled={saving} style={{ padding: '12px', backgroundColor: saving ? '#555' : gold, color: dark, border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: 700, cursor: saving ? 'default' : 'pointer' }}>
               {saving ? '저장 중...' : '저장'}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 일괄 백데이팅 모달 */}
+      {showBackdate && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 4000, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ backgroundColor: dark, border: '1px solid #333', borderRadius: '16px', width: '100%', maxWidth: '480px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ color: gold, fontSize: '18px', fontWeight: 800, margin: 0 }}>일괄 백데이팅</h2>
+              <button onClick={() => setShowBackdate(false)} style={{ background: 'none', border: 'none', color: '#888', fontSize: '22px', cursor: 'pointer' }}>✕</button>
+            </div>
+            <p style={{ color: '#888', fontSize: '13px', margin: 0 }}>현재 순서({expandedArticles.length}개 글) 기준으로 날짜를 순차 지정해요.</p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ color: '#ccc', fontSize: '13px', fontWeight: 700 }}>시작 날짜</label>
+              <input type="date" value={backdateStart} onChange={(e) => setBackdateStart(e.target.value)} style={inp} />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ color: '#ccc', fontSize: '13px', fontWeight: 700 }}>간격 (일)</label>
+              <input type="number" min={1} value={backdateInterval} onChange={(e) => setBackdateInterval(Math.max(1, Number(e.target.value)))} style={inp} />
+            </div>
+
+            {backdateStart && preview.length > 0 && (
+              <div style={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '5px', maxHeight: '200px', overflowY: 'auto' }}>
+                <p style={{ color: gold, fontSize: '12px', fontWeight: 700, margin: '0 0 8px' }}>적용 미리보기</p>
+                {preview.map((p, i) => (
+                  <div key={p.id} style={{ display: 'flex', gap: '12px', fontSize: '12px', alignItems: 'center' }}>
+                    <span style={{ color: gold, minWidth: '80px', flexShrink: 0 }}>{p.dateLabel}</span>
+                    <span style={{ color: '#aaa', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{i + 1}. {p.title}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button
+              onClick={() => setShowBackdateConfirm(true)}
+              disabled={!backdateStart}
+              style={{ padding: '12px', backgroundColor: backdateStart ? gold : '#555', color: dark, border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: 700, cursor: backdateStart ? 'pointer' : 'not-allowed' }}
+            >
+              적용
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 백데이팅 확인 모달 */}
+      {showBackdateConfirm && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 5000, backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ backgroundColor: dark, border: '1px solid #555', borderRadius: '16px', width: '100%', maxWidth: '380px', padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <h2 style={{ color: '#f0e8d6', fontSize: '16px', fontWeight: 800, margin: 0 }}>정말 적용할까요?</h2>
+            <p style={{ color: '#aaa', fontSize: '13px', margin: 0 }}>
+              {expandedArticles.length}개 글의 published_at이 변경돼요.<br />
+              되돌리려면 각 글을 수동으로 수정해야 해요.
+            </p>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => setShowBackdateConfirm(false)} style={{ flex: 1, padding: '10px', backgroundColor: 'transparent', color: '#888', border: '1px solid #444', borderRadius: '8px', fontSize: '14px', cursor: 'pointer' }}>
+                취소
+              </button>
+              <button onClick={applyBackdate} disabled={backdating} style={{ flex: 1, padding: '10px', backgroundColor: backdating ? '#555' : gold, color: dark, border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 700, cursor: backdating ? 'not-allowed' : 'pointer' }}>
+                {backdating ? '적용 중...' : '적용'}
+              </button>
+            </div>
           </div>
         </div>
       )}
