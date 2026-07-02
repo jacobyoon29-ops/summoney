@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>만남의 광장 — 소상공인 잉여물자 옥션</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --orange: #F4610A;
+      --orange-light: #FF8C42;
+      --orange-dark: #C44D08;
+      --cream: #FFF8F2;
+      --dark: #1A1208;
+      --mid: #6B4226;
+    }
+
+    body {
+      font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      background: var(--cream);
+      color: var(--dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* NAV */
+    nav {
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--orange);
+      letter-spacing: -0.5px;
+    }
+    .badge {
+      font-size: 12px;
+      background: var(--orange);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    /* HERO */
+    .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px 24px 40px;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: var(--orange);
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+
+    .main-copy {
+      font-size: clamp(26px, 5vw, 48px);
+      font-weight: 800;
+      line-height: 1.45;
+      letter-spacing: -1px;
+      color: var(--dark);
+      max-width: 680px;
+      margin-bottom: 36px;
+    }
+    .main-copy .highlight {
+      color: var(--orange);
+    }
+
+    .divider {
+      width: 48px;
+      height: 3px;
+      background: var(--orange);
+      border-radius: 2px;
+      margin: 0 auto 32px;
+    }
+
+    .sub-copy {
+      font-size: clamp(15px, 2.5vw, 18px);
+      color: var(--mid);
+      line-height: 1.7;
+      max-width: 480px;
+      margin-bottom: 48px;
+    }
+    .sub-copy strong {
+      color: var(--orange-dark);
+      font-weight: 700;
+    }
+
+    /* BUTTONS */
+    .btn-group {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .btn {
+      padding: 18px 36px;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.18s ease;
+      letter-spacing: -0.3px;
+    }
+    .btn-primary {
+      background: var(--orange);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(244,97,10,0.35);
+    }
+    .btn-primary:hover {
+      background: var(--orange-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(244,97,10,0.4);
+    }
+    .btn-secondary {
+      background: #fff;
+      color: var(--orange);
+      border: 2px solid var(--orange);
+    }
+    .btn-secondary:hover {
+      background: #FFF0E6;
+      transform: translateY(-2px);
+    }
+
+    .hint {
+      font-size: 13px;
+      color: #B07A5A;
+      margin-top: 4px;
+    }
+
+    /* STATS */
+    .stats {
+      display: flex;
+      gap: 40px;
+      justify-content: center;
+      margin-top: 56px;
+      flex-wrap: wrap;
+    }
+    .stat {
+      text-align: center;
+    }
+    .stat-num {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--orange);
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--mid);
+      margin-top: 4px;
+    }
+
+    /* MODAL OVERLAY */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(26,18,8,0.55);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .overlay.active { display: flex; }
+
+    .modal {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px 36px;
+      max-width: 440px;
+      width: 100%;
+      position: relative;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px; right: 20px;
+      background: none; border: none;
+      font-size: 22px; cursor: pointer;
+      color: #aaa;
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--dark); }
+
+    .modal-badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      background: #FFF0E6;
+      color: var(--orange);
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+    .modal-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+    .modal-sub {
+      font-size: 14px;
+      color: var(--mid);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 6px;
+    }
+    input, select {
+      width: 100%;
+      padding: 13px 16px;
+      border: 1.5px solid #E8D5C4;
+      border-radius: 10px;
+      font-size: 15px;
+      color: var(--dark);
+      background: #FFFAF7;
+      outline: none;
+      transition: border 0.15s;
+      font-family: inherit;
+    }
+    input:focus, select:focus {
+      border-color: var(--orange);
+    }
+    select { appearance: none; cursor: pointer; }
+
+    .submit-btn {
+      width: 100%;
+      margin-top: 8px;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 700;
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.15s;
+      font-family: inherit;
+    }
+    .submit-btn:hover {
+      background: var(--orange-dark);
+      transform: translateY(-1px);
+    }
+
+    /* SUCCESS */
+    .success {
+      display: none;
+      text-align: center;
+      padding: 16px 0 8px;
+    }
+    .success.active { display: block; }
+    .success-icon {
+      font-size: 52px;
+      margin-bottom: 16px;
+    }
+    .success-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 10px;
+    }
+    .success-msg {
+      font-size: 14px;
+      color: var(--mid);
+      line-height: 1.7;
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: #C0A090;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <span class="logo">만남의 광장</span>
+    <span class="badge">Beta Coming Soon</span>
+  </nav>
+
+  <section class="hero">
+    <p class="eyebrow">소상공인 잉여물자 옥션 플랫폼</p>
+
+    <h1 class="main-copy">
+      나는 오늘 쓰던 것들을<br>
+      <span class="highlight">헐값에 넘겼다.</span><br>
+      누군가는 어쩔 수 없이<br>
+      신품을 샀다.<br>
+      둘은 <span class="highlight">만나지 못했다.</span>
+    </h1>
+
+    <div class="divider"></div>
+
+    <p class="sub-copy">
+      지금 알림 신청하면 <strong>낙찰 수수료 무료.</strong><br>
+      2026년 8월, 송도·청라·영종부터 시작합니다.
+    </p>
+
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="openModal('sell')">물건 팔고 싶어요</button>
+      <button class="btn btn-secondary" onclick="openModal('buy')">물건 사고 싶어요</button>
+    </div>
+    <p class="hint">알림 신청 후 베타 오픈 시 가장 먼저 안내해 드립니다.</p>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num">0원</div>
+        <div class="stat-label">얼리버드 수수료</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">2026.08</div>
+        <div class="stat-label">서비스 오픈 예정</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">인천</div>
+        <div class="stat-label">첫 서비스 지역</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>© 2026 만남의 광장. 소상공인의 물건이 제자리를 찾도록.</footer>
+
+  <!-- MODAL -->
+  <div class="overlay" id="overlay" onclick="closeOnOverlay(event)">
+    <div class="modal" id="modal">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+
+      <!-- FORM VIEW -->
+      <div id="formView">
+        <span class="modal-badge" id="modalBadge">판매자 알림 신청</span>
+        <h2 class="modal-title" id="modalTitle">오픈 알림 신청</h2>
+        <p class="modal-sub" id="modalSub">베타 오픈 시 가장 먼저 알려드릴게요.<br>지금 신청하면 낙찰 수수료가 무료입니다.</p>
+
+        <form onsubmit="handleSubmit(event)">
+          <div class="form-group">
+            <label for="name">이름</label>
+            <input id="name" type="text" placeholder="홍길동" required />
+          </div>
+          <div class="form-group">
+            <label for="email">이메일</label>
+            <input id="email" type="email" placeholder="example@email.com" required />
+          </div>
+          <div class="form-group">
+            <label for="category">업종</label>
+            <select id="category" required>
+              <option value="" disabled selected>업종을 선택해 주세요</option>
+              <option>식품·음료</option>
+              <option>의류·패션</option>
+              <option>가구·인테리어</option>
+              <option>전자·기기</option>
+              <option>뷰티·헬스</option>
+              <option>스포츠·레저</option>
+              <option>생활·주방</option>
+              <option>문구·사무</option>
+              <option>기타</option>
+            </select>
+          </div>
+          <button type="submit" class="submit-btn" id="submitBtn">오픈 알림 신청하기 →</button>
+        </form>
+      </div>
+
+      <!-- SUCCESS VIEW -->
+      <div class="success" id="successView">
+        <div class="success-icon">🎉</div>
+        <div class="success-title">신청 완료!</div>
+        <p class="success-msg">
+          오픈 알림 신청이 접수되었습니다.<br>
+          2026년 8월 베타 오픈 시<br>가장 먼저 연락드릴게요.<br><br>
+          <strong style="color:var(--orange)">얼리버드 혜택 — 낙찰 수수료 무료</strong>가<br>
+          자동으로 적용됩니다.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openModal(type) {
+      document.getElementById('formView').style.display = 'block';
+      document.getElementById('successView').classList.remove('active');
+
+      if (type === 'sell') {
+        document.getElementById('modalBadge').textContent = '판매자 알림 신청';
+        document.getElementById('modalTitle').textContent = '팔고 싶은 물건이 있으신가요?';
+        document.getElementById('modalSub').textContent = '재고·잉여물자, 경매에 올려 제값 받으세요.\n베타 오픈 시 수수료 0원으로 시작합니다.';
+      } else {
+        document.getElementById('modalBadge').textContent = '구매자 알림 신청';
+        document.getElementById('modalTitle').textContent = '좋은 물건, 제값에 사고 싶으신가요?';
+        document.getElementById('modalSub').textContent = '소상공인 잉여물자를 옥션으로 만나보세요.\n오픈 알림을 가장 먼저 받아보실 수 있습니다.';
+      }
+
+      document.getElementById('overlay').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      document.getElementById('overlay').classList.remove('active');
+      document.body.style.overflow = '';
+      setTimeout(() => {
+        document.getElementById('formView').style.display = 'block';
+        document.getElementById('successView').classList.remove('active');
+        document.getElementById('name').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('category').value = '';
+      }, 300);
+    }
+
+    function closeOnOverlay(e) {
+      if (e.target === document.getElementById('overlay')) closeModal();
+    }
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      btn.textContent = '신청 중...';
+      btn.disabled = true;
+
+      setTimeout(() => {
+        document.getElementById('formView').style.display = 'none';
+        document.getElementById('successView').classList.add('active');
+      }, 800);
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeModal();
+    });
+  </script>
+</body>
+</html>
